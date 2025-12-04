@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Security Check",
+  "description": "Scan for hardcoded secrets and security vulnerabilities",
+  "version": "3",
+  "when": {
+    "type": "onFileChange",
+    "patterns": ["**/*.py", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.json", "**/*.env"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Security scan this file. Check for:\n1. CRITICAL: Hardcoded API keys/secrets (sk-*, AIza*, tvly-*) - BLOCK and alert\n2. WARNING: SQL/command injection, unsafe eval(), XSS - report with line numbers\n3. INFO: HTTP instead of HTTPS - note only\n\nFor each issue: severity, line number, fix suggestion. Secrets should use os.environ or process.env. Only report if issues found."
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "enabled": false,
+  "name": "Smart Git Commit",
+  "description": "Auto-commit with meaningful message based on changes, optionally push",
+  "version": "1",
+  "when": {
+    "type": "afterAgentResponse"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check for uncommitted changes with 'git status --porcelain'. If changes exist:\n1. Run 'git diff --staged' and 'git diff' to see what changed\n2. Generate a concise, meaningful commit message based on the actual changes (not generic like 'auto: agent changes')\n3. Stage all changes: git add -A\n4. Commit with the generated message\n5. Report what was committed\n\nIf no changes, say nothing."
+  }
+}

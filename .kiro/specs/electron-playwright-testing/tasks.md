@@ -1,0 +1,208 @@
+# Implementation Plan
+
+- [ ] 1. Set up Playwright for Electron (~1 hour)
+  - [ ] 1.1 Install Playwright and dependencies (~20 min)
+    - Add `@playwright/test`, `playwright`, `pixelmatch`, `pngjs` to devDependencies
+    - Create `playwright.config.ts` with Electron configuration
+    - _Requirements: 1.1, 1.2_
+    - **File:** `frontend/package.json`, `frontend/playwright.config.ts`
+    - **Verify:** `cd frontend && npm install && npx playwright --version`
+    - **Expected output:** `Version 1.x.x`
+  - [ ] 1.2 Create Electron test launcher utility (~30 min)
+    - Implement `ElectronTestRunner` class that launches app in test mode
+    - Add environment variable `TEST_MODE=true` detection in main.js
+    - Skip Python backend launch in test mode
+    - _Requirements: 1.1, 1.2, 1.4_
+    - **File:** `frontend/e2e/utils/electron-launcher.ts`, `frontend/electron/main.js`
+    - **Done when:**
+      - ElectronTestRunner.launch() returns Electron app instance
+      - main.js checks TEST_MODE and skips backend spawn
+    - **Verify:** `cd frontend && npx playwright test --grep "launcher" --reporter=list`
+  - [ ]* 1.3 Write property test for Electron launcher (~10 min)
+    - **Property 1: Test runner launches Electron successfully**
+    - **Validates: Requirements 1.1, 1.2**
+    - **Verify:** `cd frontend && npx playwright test e2e/property/launcher.spec.ts -v`
+
+- [ ] 2. Implement screenshot capture with task mapping (~1.5 hours)
+  - [ ] 2.1 Create ScreenshotManager class (~1 hour)
+    - Implement `capture(page, taskId, index)` method
+    - Generate filenames in format `task-{taskId}-{index}.png`
+    - Store in configured screenshots directory
+    - _Requirements: 2.1, 2.2, 2.4, 3.1_
+    - **File:** `frontend/e2e/utils/screenshot-manager.ts`
+    - **Done when:**
+      - capture() saves PNG to e2e/screenshots/
+      - Filename includes task ID and sequential index
+    - **Verify:** `cd frontend && npx playwright test --grep "screenshot" --reporter=list`
+  - [ ]* 2.2 Write property test for filename generation (~15 min)
+    - **Property 2: Screenshots include task ID in filename**
+    - **Validates: Requirements 2.2, 3.1, 3.2**
+    - **Verify:** `cd frontend && npx playwright test e2e/property/screenshot.spec.ts::filename -v`
+  - [ ]* 2.3 Write property test for sequential numbering (~15 min)
+    - **Property 3: Multiple screenshots are numbered sequentially**
+    - **Validates: Requirements 2.3, 3.4**
+    - **Verify:** `cd frontend && npx playwright test e2e/property/screenshot.spec.ts::numbering -v`
+  - [ ]* 2.4 Write property test for directory containment (~10 min)
+    - **Property 4: Screenshots stored in correct directory**
+    - **Validates: Requirements 2.4**
+    - **Verify:** `cd frontend && npx playwright test e2e/property/screenshot.spec.ts::directory -v`
+
+- [ ] 3. Implement baseline comparison engine (~2 hours)
+  - [ ] 3.1 Create BaselineComparator class (~1 hour)
+    - Implement `compare(actual, baseline)` using pixelmatch
+    - Calculate diff percentage from pixel differences
+    - Implement `isWithinThreshold(diffPercentage)` method
+    - _Requirements: 4.1, 4.2_
+    - **File:** `frontend/e2e/utils/baseline-comparator.ts`
+    - **Done when:**
+      - compare() returns { diffPercentage, diffPixels, diffImage }
+      - isWithinThreshold() uses configurable threshold (default 0.1%)
+    - **Verify:** `cd frontend && npx playwright test --grep "comparator" --reporter=list`
+  - [ ] 3.2 Implement diff image generation (~30 min)
+    - Generate visual diff highlighting changed areas
+    - Save diff images to diffs/ directory
+    - _Requirements: 5.2, 5.3_
+    - **Done when:**
+      - Diff image shows red pixels where screenshots differ
+      - Saved to e2e/diffs/task-{taskId}-{index}-diff.png
+    - **Verify:** Check e2e/diffs/ contains diff images after test run
+  - [ ] 3.3 Implement baseline management (~20 min)
+    - Auto-create baseline when none exists
+    - Add `--update-baselines` flag to approve new screenshots
+    - _Requirements: 4.3, 4.4_
+    - **Done when:**
+      - First run creates baseline in e2e/baselines/
+      - --update-baselines overwrites existing baselines
+    - **Verify:** `cd frontend && npx playwright test --update-baselines`
+  - [ ]* 3.4 Write property test for comparison threshold (~10 min)
+    - **Property 5: Baseline comparison detects differences**
+    - **Validates: Requirements 4.1, 4.2**
+    - **Verify:** `cd frontend && npx playwright test e2e/property/comparator.spec.ts::threshold -v`
+  - [ ]* 3.5 Write property test for baseline creation (~10 min)
+    - **Property 6: Missing baseline creates new baseline**
+    - **Validates: Requirements 4.3**
+    - **Verify:** `cd frontend && npx playwright test e2e/property/comparator.spec.ts::baseline -v`
+
+- [ ] 4. Checkpoint - Ensure all tests pass
+  - **Pre-flight:** Ensure Tasks 1-3 are complete
+  - **All e2e tests:** `cd frontend && npx playwright test --reporter=list`
+  - **Property tests:** `cd frontend && npx playwright test e2e/property/ --reporter=list`
+  - **Check baselines exist:** Verify e2e/baselines/ directory has PNG files
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+
+- [ ] 5. Implement test reporter with task context (~1 hour)
+  - [ ] 5.1 Create TestReporter class (~1 hour)
+    - Track test results with task IDs
+    - Include expected/actual paths and diff percentage in failures
+    - Generate summary report
+    - _Requirements: 1.3, 5.1, 5.4_
+    - **File:** `frontend/e2e/utils/test-reporter.ts`
+    - **Done when:**
+      - Reporter outputs task ID with each result
+      - Failures include paths to expected, actual, diff images
+      - Summary shows pass/fail counts per task
+    - **Verify:** `cd frontend && npx playwright test --reporter=./e2e/utils/test-reporter.ts`
+  - [ ]* 5.2 Write property test for failure context (~15 min)
+    - **Property 7: Failed tests include complete context**
+    - **Validates: Requirements 5.1, 5.2, 5.4**
+    - **Verify:** `cd frontend && npx playwright test e2e/property/reporter.spec.ts -v`
+
+- [ ] 6. Create visual test helper and fixtures (~1.5 hours)
+  - [ ] 6.1 Create `visualTest` helper function (~45 min)
+    - Accept VisualTest config with taskId, page, actions
+    - Handle page navigation and element waiting
+    - Capture screenshots at appropriate points
+    - _Requirements: 3.1, 6.2, 6.3_
+    - **File:** `frontend/e2e/utils/visual-test.ts`
+    - **Done when:**
+      - visualTest({ taskId, page, actions }) runs full visual test
+      - Waits for page load before capture
+      - Returns comparison result
+    - **Verify:** `cd frontend && npx playwright test --grep "visualTest" --reporter=list`
+  - [ ] 6.2 Implement page navigation utilities (~30 min)
+    - Create helpers for each page (dashboard, settings, run, results)
+    - Add wait-for-render logic
+    - _Requirements: 6.1, 6.2_
+    - **File:** `frontend/e2e/utils/page-helpers.ts`
+    - **Done when:**
+      - goToDashboard(page), goToSettings(page), etc. exist
+      - Each waits for page-specific element before returning
+    - **Verify:** `cd frontend && npx playwright test --grep "navigation" --reporter=list`
+  - [ ] 6.3 Implement interaction capture (before/after) (~15 min)
+    - Capture screenshot before actions
+    - Execute actions (click, fill, hover)
+    - Capture screenshot after actions
+    - _Requirements: 6.4_
+    - **Done when:**
+      - captureInteraction() takes before/after screenshots
+      - Both screenshots saved with -before/-after suffix
+    - **Verify:** Check e2e/screenshots/ has before/after pairs
+  - [ ]* 6.4 Write property test for page filtering (~10 min)
+    - **Property 8: Page filtering returns correct tests**
+    - **Validates: Requirements 6.1**
+    - **Verify:** `cd frontend && npx playwright test e2e/property/page-filter.spec.ts -v`
+  - [ ]* 6.5 Write property test for interaction capture (~10 min)
+    - **Property 9: Interaction tests capture before/after**
+    - **Validates: Requirements 6.4**
+    - **Verify:** `cd frontend && npx playwright test e2e/property/interaction.spec.ts -v`
+
+- [ ] 7. Create example visual tests for each page (~2 hours)
+  - [ ] 7.1 Create Dashboard visual tests (~30 min)
+    - Test connection status display
+    - Test stats cards rendering
+    - Test recent runs list
+    - _Requirements: 2.1, 3.3_
+    - **File:** `frontend/e2e/visual/dashboard.spec.ts`
+    - **Verify:** `cd frontend && npx playwright test e2e/visual/dashboard.spec.ts --reporter=list`
+  - [ ] 7.2 Create Settings visual tests (~30 min)
+    - Test API key fields display
+    - Test form interactions
+    - _Requirements: 2.1, 6.4_
+    - **File:** `frontend/e2e/visual/settings.spec.ts`
+    - **Verify:** `cd frontend && npx playwright test e2e/visual/settings.spec.ts --reporter=list`
+  - [ ] 7.3 Create Run Orchestrator visual tests (~30 min)
+    - Test initial form state
+    - Test form validation feedback
+    - _Requirements: 2.1, 6.4_
+    - **File:** `frontend/e2e/visual/run-orchestrator.spec.ts`
+    - **Verify:** `cd frontend && npx playwright test e2e/visual/run-orchestrator.spec.ts --reporter=list`
+  - [ ] 7.4 Create Results visual tests (~30 min)
+    - Test results list display
+    - Test result detail view
+    - _Requirements: 2.1, 3.3_
+    - **File:** `frontend/e2e/visual/results.spec.ts`
+    - **Verify:** `cd frontend && npx playwright test e2e/visual/results.spec.ts --reporter=list`
+
+- [ ] 8. Add npm scripts and documentation (~30 min)
+  - [ ] 8.1 Add test scripts to package.json (~15 min)
+    - `test:e2e` - Run all visual tests
+    - `test:e2e:update` - Update baselines
+    - `test:e2e:dashboard` - Run only dashboard tests
+    - _Requirements: 4.4, 6.1_
+    - **File:** `frontend/package.json`
+    - **Done when:**
+      - npm run test:e2e works
+      - npm run test:e2e:update updates baselines
+    - **Verify:** `cd frontend && npm run test:e2e -- --reporter=list`
+  - [ ] 8.2 Create README for e2e testing (~15 min)
+    - Document how to run tests
+    - Document how to add new visual tests with task mapping
+    - Document baseline management workflow
+    - _Requirements: 4.4_
+    - **File:** `frontend/e2e/README.md`
+    - **Done when:**
+      - README explains directory structure
+      - README has examples for adding new tests
+      - README documents baseline update workflow
+
+- [ ] 9. Final Checkpoint - Ensure all tests pass
+  - **All visual tests:** `cd frontend && npm run test:e2e`
+  - **All property tests:** `cd frontend && npx playwright test e2e/property/ --reporter=list`
+  - **Check baselines:** Verify e2e/baselines/ has baseline for each test
+  - **Check reporter:** Verify test output includes task IDs
+  - **Expected results:**
+    - All visual tests pass
+    - Baselines exist for all pages
+    - Reporter shows task context
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+  - **Rollback:** `git checkout frontend/e2e/` if e2e tests break existing functionality

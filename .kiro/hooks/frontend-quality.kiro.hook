@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Frontend ESLint",
+  "description": "Run ESLint with auto-fix on TypeScript/React files",
+  "version": "2",
+  "when": {
+    "type": "onFileSave",
+    "patterns": ["frontend/src/**/*.ts", "frontend/src/**/*.tsx"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "cd frontend && npx eslint ${file} --fix"
+  }
+}

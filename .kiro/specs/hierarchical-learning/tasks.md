@@ -1,0 +1,239 @@
+# Implementation Plan
+
+- [ ] 1. Create hierarchical learning data structures (~1 hour)
+  - [ ] 1.1 Add data classes for system foundation (~30 min)
+    - Implement ArchitecturePattern, DomainConcept, KnownTradeoff dataclasses
+    - Implement SystemFoundation container class
+    - _Requirements: 1.2, 1.3, 1.4_
+    - **File:** `backend/orchestrator.py` or `backend/hierarchical.py`
+    - **Done when:**
+      - All dataclasses have type hints
+      - SystemFoundation contains patterns, concepts, tradeoffs lists
+    - **Verify:** `python -c "from backend.orchestrator import SystemFoundation, ArchitecturePattern; print('OK')"`
+  - [ ] 1.2 Add data classes for relationships (~20 min)
+    - Implement InterfaceSpec, ComponentRelationship dataclasses
+    - Implement RelationshipMap with dependency graph
+    - _Requirements: 2.2, 2.3, 2.4_
+    - **Done when:**
+      - RelationshipMap has add_relationship() and get_dependencies() methods
+    - **Verify:** `python -c "from backend.orchestrator import RelationshipMap; print('OK')"`
+  - [ ] 1.3 Add data classes for constraints (~10 min)
+    - Implement ComponentBudget, ConstraintConflict dataclasses
+    - _Requirements: 3.1, 3.4_
+    - **Verify:** `python -c "from backend.orchestrator import ComponentBudget, ConstraintConflict; print('OK')"`
+
+- [ ] 2. Implement System Surveyor (~1.5 hours)
+  - [ ] 2.1 Create SystemSurveyor class (~1 hour)
+    - Generate system-level search queries
+    - Search for architecture patterns, domain concepts, tradeoffs
+    - Synthesize into SystemFoundation
+    - _Requirements: 1.1, 1.2, 1.3, 1.4_
+    - **Depends on:** Task 1.1 (data classes)
+    - **File:** `backend/orchestrator.py`
+    - **Done when:**
+      - SystemSurveyor.run() returns SystemFoundation
+      - Queries include "architecture", "design patterns", "tradeoffs"
+    - **Verify:** `pytest tests/unit/test_system_surveyor.py -v`
+  - [ ] 2.2 Write property test for survey execution order (~15 min)
+    - **Property 1: System survey runs first**
+    - **Validates: Requirements 1.1**
+    - **Verify:** `pytest tests/property/test_hierarchical.py::test_survey_runs_first -v`
+  - [ ] 2.3 Write property test for survey output structure (~15 min)
+    - **Property 2: System survey output structure**
+    - **Validates: Requirements 1.2, 1.3, 1.4**
+    - **Verify:** `pytest tests/property/test_hierarchical.py::test_survey_output_structure -v`
+
+- [ ] 3. Implement Relationship Analyzer (~2 hours)
+  - [ ] 3.1 Create RelationshipAnalyzer class (~1 hour)
+    - Analyze component pairs for relationships
+    - Extract interface specifications
+    - Build dependency graph
+    - _Requirements: 2.1, 2.2, 2.3_
+    - **Depends on:** Task 1.2 (relationship data classes)
+    - **Done when:**
+      - analyze() returns RelationshipMap
+      - Dependency graph is acyclic (or cycles detected)
+    - **Verify:** `pytest tests/unit/test_relationship_analyzer.py -v`
+  - [ ] 3.2 Implement shared concept detection (~20 min)
+    - Identify concepts used by multiple components
+    - Map concepts to component lists
+    - _Requirements: 2.4_
+    - **Verify:** `pytest tests/unit/test_relationship_analyzer.py::test_shared_concepts -v`
+  - [ ] 3.3 Implement topological sort (~30 min)
+    - Compute valid research order from dependency graph
+    - Group components by level for parallel execution
+    - _Requirements: 4.1_
+    - **Done when:**
+      - topological_sort() returns ordered list
+      - get_parallel_groups() returns list of lists
+    - **Verify:** `pytest tests/unit/test_relationship_analyzer.py::test_topological_sort -v`
+  - [ ] 3.4 Write property test for relationship analysis order (~10 min)
+    - **Property 3: Relationship analysis runs after survey**
+    - **Validates: Requirements 2.1**
+    - **Verify:** `pytest tests/property/test_hierarchical.py::test_relationship_after_survey -v`
+  - [ ] 3.5 Write property test for relationship map structure (~10 min)
+    - **Property 4: Relationship map structure**
+    - **Validates: Requirements 2.2, 2.3, 2.4**
+    - **Verify:** `pytest tests/property/test_hierarchical.py::test_relationship_map_structure -v`
+  - [ ] 3.6 Write property test for topological sort (~10 min)
+    - **Property 7: Valid topological sort**
+    - **Validates: Requirements 4.1, 4.3**
+    - **Verify:** `pytest tests/property/test_hierarchical.py::test_topological_sort_valid -v`
+
+- [ ] 4. Checkpoint - Ensure all tests pass
+  - **Pre-flight:** Ensure Tasks 1-3 are complete
+  - **Unit tests:** `pytest tests/unit/test_system_surveyor.py tests/unit/test_relationship_analyzer.py -v`
+  - **Property tests:** `pytest tests/property/test_hierarchical.py -v`
+  - **Import check:** `python -c "from backend.orchestrator import SystemSurveyor, RelationshipAnalyzer; print('OK')"`
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+
+- [ ] 5. Implement Constraint Propagator (~1.5 hours)
+  - [ ] 5.1 Create ConstraintPropagator class (~1 hour)
+    - Process components in topological order
+    - Calculate budgets from upstream + system constraints
+    - Track remaining budget for downstream
+    - _Requirements: 3.1, 3.2, 3.4_
+    - **Depends on:** Task 3.3 (topological sort)
+    - **Done when:**
+      - propagate() returns dict of ComponentBudget per component
+      - Budgets decrease as constraints flow downstream
+    - **Verify:** `pytest tests/unit/test_constraint_propagator.py -v`
+  - [ ] 5.2 Implement conflict detection (~30 min)
+    - Check if total constraints exceed available budget
+    - Generate ConstraintConflict with resolution suggestions
+    - _Requirements: 3.3_
+    - **Done when:**
+      - detect_conflicts() returns list of ConstraintConflict
+      - Each conflict has affected_components and suggestions
+    - **Verify:** `pytest tests/unit/test_constraint_propagator.py::test_conflict_detection -v`
+  - [ ] 5.3 Write property test for constraint propagation (~10 min)
+    - **Property 5: Constraint propagation**
+    - **Validates: Requirements 3.1, 3.2, 3.4**
+    - **Verify:** `pytest tests/property/test_constraints.py::test_propagation -v`
+  - [ ] 5.4 Write property test for conflict detection (~10 min)
+    - **Property 6: Conflict detection**
+    - **Validates: Requirements 3.3**
+    - **Verify:** `pytest tests/property/test_constraints.py::test_conflict_detection -v`
+
+- [ ] 6. Implement Context-Aware Research Orchestrator (~2 hours)
+  - [ ] 6.1 Create ContextAwareResearchOrchestrator class (~1 hour)
+    - Coordinate system survey -> relationship analysis -> constraint propagation
+    - Manage research execution order
+    - _Requirements: 1.1, 2.1, 4.1_
+    - **Depends on:** Tasks 2.1, 3.1, 5.1
+    - **Done when:**
+      - run() executes all phases in order
+      - Returns HierarchicalContext with all results
+    - **Verify:** `pytest tests/unit/test_context_orchestrator.py -v`
+  - [ ] 6.2 Implement component context builder (~30 min)
+    - Build ComponentContext with system foundation, interfaces, budgets
+    - Include upstream findings for downstream components
+    - _Requirements: 5.1, 5.2, 5.3, 4.4_
+    - **Done when:**
+      - build_context(component) returns ComponentContext
+      - Context includes upstream_findings when available
+    - **Verify:** `pytest tests/unit/test_context_orchestrator.py::test_context_builder -v`
+  - [ ] 6.3 Implement parallel research for independent components (~20 min)
+    - Identify components at same dependency level
+    - Execute their research in parallel
+    - _Requirements: 4.2_
+    - **Done when:**
+      - Components at same level run concurrently
+      - Results collected before next level starts
+    - **Verify:** `pytest tests/unit/test_context_orchestrator.py::test_parallel_execution -v`
+  - [ ] 6.4 Write property test for parallel research (~10 min)
+    - **Property 8: Parallel research for independent components**
+    - **Validates: Requirements 4.2**
+    - **Verify:** `pytest tests/property/test_context_orchestrator.py::test_parallel -v`
+  - [ ] 6.5 Write property test for upstream findings (~10 min)
+    - **Property 9: Upstream findings passed downstream**
+    - **Validates: Requirements 4.4**
+    - **Verify:** `pytest tests/property/test_context_orchestrator.py::test_upstream_findings -v`
+  - [ ] 6.6 Write property test for context completeness (~10 min)
+    - **Property 10: Component context completeness**
+    - **Validates: Requirements 5.1, 5.2, 5.3**
+    - **Verify:** `pytest tests/property/test_context_orchestrator.py::test_context_complete -v`
+
+- [ ] 7. Checkpoint - Ensure all tests pass
+  - **Unit tests:** `pytest tests/unit/test_constraint_propagator.py tests/unit/test_context_orchestrator.py -v`
+  - **Property tests:** `pytest tests/property/test_constraints.py tests/property/test_context_orchestrator.py -v`
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+
+- [ ] 8. Implement Interface Validator (~1.5 hours)
+  - [ ] 8.1 Create InterfaceValidator class (~1 hour)
+    - Validate component outputs against interface specs
+    - Check data format, constraints
+    - Generate mismatch reports
+    - _Requirements: 6.1, 6.2_
+    - **Depends on:** Task 1.2 (InterfaceSpec)
+    - **Done when:**
+      - validate(component, output) returns ValidationResult
+      - Mismatches include field name and expected vs actual
+    - **Verify:** `pytest tests/unit/test_interface_validator.py -v`
+  - [ ] 8.2 Implement end-to-end validation (~30 min)
+    - Verify all interfaces after research completes
+    - Check system-wide constraints
+    - Identify components needing adjustment
+    - _Requirements: 6.3, 6.4_
+    - **Done when:**
+      - validate_all() checks all component interfaces
+      - Returns list of components needing adjustment
+    - **Verify:** `pytest tests/unit/test_interface_validator.py::test_e2e_validation -v`
+  - [ ] 8.3 Write property test for interface validation (~10 min)
+    - **Property 11: Interface validation**
+    - **Validates: Requirements 6.1, 6.2**
+    - **Verify:** `pytest tests/property/test_validation.py::test_interface -v`
+  - [ ] 8.4 Write property test for end-to-end validation (~10 min)
+    - **Property 12: End-to-end validation**
+    - **Validates: Requirements 6.3, 6.4**
+    - **Verify:** `pytest tests/property/test_validation.py::test_e2e -v`
+
+- [ ] 9. Integrate with existing orchestrator (~1.5 hours)
+  - [ ] 9.1 Modify main orchestrator entry point (~45 min)
+    - Call hierarchical learning before component pipelines
+    - Pass context to each component's research
+    - _Requirements: 1.1, 5.1_
+    - **File:** `backend/orchestrator.py`
+    - **Done when:**
+      - run_full_pipeline() calls hierarchical learning first
+      - HierarchicalContext passed to component pipelines
+    - **Verify:** Run orchestrator and check logs show "[Hierarchical] System survey..." before component research
+    - **Rollback:** `git checkout backend/orchestrator.py` if integration breaks
+  - [ ] 9.2 Update component pipeline to accept context (~30 min)
+    - Modify run_component_node_pipeline to use ComponentContext
+    - Include system foundation in agent prompts
+    - Include interface constraints in hypothesis formation
+    - _Requirements: 5.1, 5.2, 5.3_
+    - **Done when:**
+      - Function signature includes context parameter
+      - Agent prompts reference system foundation
+    - **Verify:** `pytest tests/integration/test_hierarchical_pipeline.py -v`
+  - [ ] 9.3 Add validation step after all components complete (~15 min)
+    - Run interface validation
+    - Run end-to-end validation
+    - Report results
+    - _Requirements: 6.1, 6.3_
+    - **Verify:** Check logs show "[Validation] Interface check..." after all components
+
+- [ ] 10. Update logging and output (~30 min)
+  - [ ] 10.1 Add hierarchical learning progress logging (~15 min)
+    - Log system survey completion
+    - Log relationship map
+    - Log constraint propagation results
+    - Log validation results
+    - _Requirements: 1.1, 2.1, 3.3, 6.1_
+    - **Verify:** Run orchestrator and check console shows hierarchical learning stages
+  - [ ] 10.2 Save hierarchical learning outputs (~15 min)
+    - Save system_foundation.json
+    - Save relationship_map.json
+    - Save validation_report.json
+    - _Requirements: 1.2, 2.2, 6.3_
+    - **Verify:** Check `neura_lab_runs/system/` contains hierarchical output files
+
+- [ ] 11. Final Checkpoint - Ensure all tests pass
+  - **All unit tests:** `pytest tests/unit/test_*hierarchical*.py tests/unit/test_*validator*.py -v`
+  - **All property tests:** `pytest tests/property/test_hierarchical.py tests/property/test_constraints.py tests/property/test_validation.py -v`
+  - **Integration test:** `pytest tests/integration/test_hierarchical_pipeline.py -v`
+  - **Full pipeline test:** Run orchestrator end-to-end with hierarchical learning enabled
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+  - **Rollback:** `git checkout backend/orchestrator.py` if hierarchical learning breaks core pipeline

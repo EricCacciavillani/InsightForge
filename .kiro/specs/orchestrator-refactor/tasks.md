@@ -1,0 +1,166 @@
+# Implementation Plan
+
+- [ ] 1. Create orchestrator package structure
+  - [ ] 1.1 Create backend/orchestrator/ directory
+    - Create __init__.py
+    - Create core.py (main orchestrator)
+    - Create context.py (pipeline context)
+    - Create pipeline.py (pipeline runner)
+    - Create registry.py (stage registry)
+    - _Requirements: 1.1, 2.1_
+  - [ ] 1.2 Create stages subdirectory
+    - Create backend/orchestrator/stages/__init__.py
+    - Create backend/orchestrator/stages/base.py (Stage interface)
+    - _Requirements: 1.1_
+  - [ ] 1.3 Create models subdirectory
+    - Create backend/orchestrator/models/__init__.py
+    - Prepare for data model classes
+    - _Requirements: 3.1_
+
+- [ ] 2. Implement core abstractions
+  - [ ] 2.1 Implement Stage base class
+    - Define abstract run() method
+    - Implement validate_context()
+    - Implement should_skip()
+    - Define required_context and produces attributes
+    - _Requirements: 1.1, 1.2, 1.3_
+  - [ ] 2.2 Implement StageResult dataclass
+    - Include success, output, error, duration_seconds
+    - _Requirements: 1.2, 1.3_
+  - [ ] 2.3 Implement StageConfig dataclass
+    - Include enabled, options, cost_tier
+    - _Requirements: 5.2, 5.3_
+  - [ ] 2.4 Write property test for stage interface
+    - **Property 1: Stage interface compliance**
+    - **Validates: Requirements 1.1**
+
+- [ ] 3. Implement PipelineContext
+  - [ ] 3.1 Create PipelineContext dataclass
+    - Include components, project_context, cost_tier
+    - Include current_component, current_cycle
+    - Include data dict for stage outputs
+    - _Requirements: 3.1, 3.3_
+  - [ ] 3.2 Implement context access methods
+    - Implement __contains__, __getitem__, __setitem__
+    - Implement get() with default
+    - Implement update() for merging StageResult
+    - _Requirements: 3.2, 3.3_
+  - [ ] 3.3 Implement serialization
+    - Implement to_dict() for checkpointing
+    - Implement from_dict() for restoration
+    - _Requirements: 4.1, 4.3_
+  - [ ] 3.4 Write property test for context propagation
+    - **Property 2: Context propagation**
+    - **Validates: Requirements 3.2**
+
+- [ ] 4. Implement Stage Registry
+  - [ ] 4.1 Create StageRegistry class
+    - Implement register() class method
+    - Implement get() class method
+    - Implement list_stages() class method
+    - _Requirements: 1.4, 2.1_
+  - [ ] 4.2 Create @register_stage decorator
+    - Auto-register stage classes
+    - _Requirements: 1.4_
+
+- [ ] 5. Checkpoint - Verify core abstractions
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 6. Implement Pipeline Runner
+  - [ ] 6.1 Create PipelineConfig dataclass
+    - Include stages list, stage_configs dict
+    - Include cost_tier, checkpoint_enabled, parallel_enabled
+    - Implement get_stage_config() method
+    - _Requirements: 2.1, 5.1, 5.3_
+  - [ ] 6.2 Create PipelineRunner class
+    - Implement _build_stages() to instantiate stages
+    - Implement validate() to check dependencies
+    - _Requirements: 2.1, 2.4_
+  - [ ] 6.3 Implement run() method
+    - Execute stages in order
+    - Handle checkpointing
+    - Handle errors
+    - _Requirements: 2.2, 4.1, 4.2_
+  - [ ] 6.4 Write property test for pipeline validation
+    - **Property 3: Pipeline validation**
+    - **Validates: Requirements 2.4**
+
+- [ ] 7. Migrate existing stages
+  - [ ] 7.1 Create DecomposerStage
+    - Extract decomposer logic from orchestrator.py
+    - Implement Stage interface
+    - Register with @register_stage
+    - _Requirements: 1.1, 6.1_
+  - [ ] 7.2 Create ResearchStage
+    - Extract research round logic
+    - Handle 3 rounds per agent
+    - _Requirements: 1.1, 6.1_
+  - [ ] 7.3 Create DebateStage
+    - Extract debate logic
+    - _Requirements: 1.1, 6.1_
+  - [ ] 7.4 Create ReviewerStage
+    - Extract reviewer logic
+    - Support parallel execution
+    - _Requirements: 1.1, 6.1_
+  - [ ] 7.5 Create PaperStage
+    - Extract paper v1, critics, revision logic
+    - _Requirements: 1.1, 6.1_
+  - [ ] 7.6 Create MetaDebateStage
+    - Extract meta-debate, meta-reviewers, paper v2 logic
+    - _Requirements: 1.1, 6.1_
+  - [ ] 7.7 Create ArbiterStage
+    - Extract final arbiter logic
+    - _Requirements: 1.1, 6.1_
+
+- [ ] 8. Checkpoint - Verify stage migration
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 9. Implement main Orchestrator class
+  - [ ] 9.1 Create Orchestrator class in core.py
+    - Accept pipeline, cost_tier, checkpoint_enabled
+    - Create PipelineRunner
+    - Validate pipeline on init
+    - _Requirements: 2.1, 5.1_
+  - [ ] 9.2 Implement run() method
+    - Create PipelineContext
+    - Execute pipeline
+    - Return results
+    - _Requirements: 2.2, 6.1_
+  - [ ] 9.3 Define DEFAULT_PIPELINE and EXTENDED_PIPELINE
+    - DEFAULT matches current behavior
+    - EXTENDED includes new stages (placeholders)
+    - _Requirements: 6.1_
+
+- [ ] 10. Update checkpoint integration
+  - [ ] 10.1 Refactor CheckpointManager for new architecture
+    - Support stage-level checkpoints
+    - Support context serialization
+    - _Requirements: 4.1, 4.2, 4.3_
+  - [ ] 10.2 Write property test for checkpoint resumption
+    - **Property 4: Checkpoint resumption**
+    - **Validates: Requirements 4.2, 4.3**
+
+- [ ] 11. Backward compatibility testing
+  - [ ] 11.1 Create comparison test
+    - Run old orchestrator on sample input
+    - Run new orchestrator on same input
+    - Compare outputs
+    - _Requirements: 6.1, 6.3_
+  - [ ] 11.2 Write property test for backward compatibility
+    - **Property 5: Backward compatibility**
+    - **Validates: Requirements 6.1, 6.3**
+
+- [ ] 12. Update imports and entry points
+  - [ ] 12.1 Update backend/__init__.py
+    - Export new Orchestrator class
+    - _Requirements: 6.2_
+  - [ ] 12.2 Update api/server.py
+    - Use new Orchestrator
+    - _Requirements: 6.2_
+  - [ ] 12.3 Keep old orchestrator.py as deprecated
+    - Add deprecation warning
+    - Forward to new implementation
+    - _Requirements: 6.2_
+
+- [ ] 13. Final Checkpoint - Verify complete refactor
+  - Ensure all tests pass, ask the user if questions arise.

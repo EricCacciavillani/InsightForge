@@ -1,0 +1,187 @@
+# Implementation Plan
+
+- [ ] 1. Add Red Team configuration (~30 min)
+  - [ ] 1.1 Add config variables to config.py (~20 min)
+    - Add `RED_TEAM_ENABLED`, `RED_TEAM_INTENSITY` settings
+    - Add `"red_team"` to `MODEL_ROUTING` dictionary
+    - Add intensity validation (light/standard/thorough)
+    - _Requirements: 5.1, 5.4_
+    - **File:** `backend/config.py`
+    - **Done when:**
+      - RED_TEAM_ENABLED defaults to True
+      - RED_TEAM_INTENSITY accepts only "light", "standard", "thorough"
+      - MODEL_ROUTING["red_team"] is defined
+    - **Verify:** `python -c "from backend.config import RED_TEAM_ENABLED, RED_TEAM_INTENSITY; print(f'Enabled: {RED_TEAM_ENABLED}, Intensity: {RED_TEAM_INTENSITY}')"`
+    - **Expected output:** `Enabled: True, Intensity: standard`
+  - [ ] 1.2 Write property test for config validation (~10 min)
+    - **Property 7: Config accepts valid intensity values**
+    - **Validates: Requirements 5.1**
+    - **Verify:** `pytest tests/unit/test_config.py::test_red_team_intensity_validation -v`
+
+- [ ] 2. Implement Red Team Agent (~1.5 hours)
+  - [ ] 2.1 Create Red Team system prompts (~30 min)
+    - Add `red_team_system(intensity)` function with prompts for each level
+    - Light mode: focus on critical issues only
+    - Standard mode: balanced analysis
+    - Thorough mode: deep adversarial analysis
+    - _Requirements: 5.2, 5.3_
+    - **File:** `backend/orchestrator.py` (prompts section)
+    - **Done when:**
+      - Function returns different prompts for each intensity
+      - Light mode prompt mentions "critical issues only"
+      - Thorough mode prompt mentions "deep adversarial analysis"
+    - **Verify:** `python -c "from backend.orchestrator import red_team_system; print(len(red_team_system('light')), len(red_team_system('thorough')))"`
+  - [ ] 2.2 Create `run_red_team` function (~45 min)
+    - Accept component, agent proposals, debate, paper, meta-debate as input
+    - Call LLM with appropriate intensity prompt
+    - Parse and validate JSON output
+    - Ensure minimum 3 failure modes (or log warning)
+    - _Requirements: 1.2, 1.3, 2.1_
+    - **Depends on:** Task 2.1 (Red Team prompts)
+    - **File:** `backend/orchestrator.py`
+    - **Done when:**
+      - Function accepts all required inputs
+      - Returns valid dict with failure_modes, vulnerability_score, recommendation
+      - Logs warning if <3 failure modes found
+      - Handles LLM errors gracefully
+    - **Verify:** `pytest tests/unit/test_red_team.py::test_run_red_team -v`
+  - [ ] 2.3 Write property test for output structure (~15 min)
+    - **Property 3: Output structure is valid**
+    - **Validates: Requirements 1.3, 2.1, 2.2, 2.3, 3.2**
+    - **Verify:** `pytest tests/property/test_red_team.py::test_output_structure -v`
+  - [ ] 2.4 Write property test for light mode filtering (~10 min)
+    - **Property 8: Light mode filters to critical only**
+    - **Validates: Requirements 5.2**
+    - **Verify:** `pytest tests/property/test_red_team.py::test_light_mode_filtering -v`
+
+- [ ] 3. Integrate Red Team into pipeline (~1 hour)
+  - [ ] 3.1 Add Red Team stage to `run_component_node_pipeline` (~45 min)
+    - Insert after meta-reviewers, before final arbiter
+    - Use CheckpointManager for resumability
+    - Skip if `RED_TEAM_ENABLED = False`
+    - _Requirements: 1.1, 5.4_
+    - **Depends on:** Task 2.2 (run_red_team function)
+    - **File:** `backend/orchestrator.py`
+    - **Done when:**
+      - Red Team stage appears in pipeline after meta-debate
+      - Checkpoint saves red_team output
+      - Stage skipped when RED_TEAM_ENABLED=False
+    - **Verify:** Run orchestrator with RED_TEAM_ENABLED=True, check logs show "[Red Team]" stage
+    - **Rollback:** `git checkout backend/orchestrator.py` if pipeline breaks
+  - [ ] 3.2 Write property test for pipeline ordering (~10 min)
+    - **Property 1: Red Team runs after meta-debate**
+    - **Validates: Requirements 1.1**
+    - **Verify:** `pytest tests/property/test_pipeline.py::test_red_team_ordering -v`
+  - [ ] 3.3 Write property test for disabled skip (~5 min)
+    - **Property 9: Disabled Red Team skips stage**
+    - **Validates: Requirements 5.4**
+    - **Verify:** `pytest tests/property/test_pipeline.py::test_red_team_skip_when_disabled -v`
+
+- [ ] 4. Checkpoint - Ensure all tests pass
+  - **Pre-flight:** Ensure Tasks 1-3 are complete
+  - **Unit tests:** `pytest tests/unit/test_red_team.py -v`
+  - **Property tests:** `pytest tests/property/test_red_team.py -v`
+  - **Import check:** `python -c "from backend.orchestrator import run_red_team; print('OK')"`
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+
+- [ ] 5. Modify Final Arbiter (~1 hour)
+  - [ ] 5.1 Update `final_arbiter_system` prompt (~20 min)
+    - Add instructions to consider Red Team findings
+    - Require acknowledgment of critical flaws
+    - Add `red_team_acknowledgment` to output schema
+    - _Requirements: 4.1, 4.2, 4.3_
+    - **File:** `backend/orchestrator.py`
+    - **Verify:** `python -c "from backend.orchestrator import final_arbiter_system; print('red_team' in final_arbiter_system().lower())"`
+  - [ ] 5.2 Update `run_final_arbiter` function (~30 min)
+    - Accept Red Team output as additional parameter
+    - Include Red Team findings in arbiter prompt
+    - Parse new acknowledgment fields from output
+    - _Requirements: 4.1, 4.3_
+    - **Depends on:** Task 5.1
+    - **Verify:** `pytest tests/unit/test_arbiter.py::test_arbiter_with_red_team -v`
+  - [ ] 5.3 Write property test for arbiter acknowledgment (~10 min)
+    - **Property 5: Arbiter acknowledges Red Team concerns**
+    - **Validates: Requirements 4.3**
+    - **Verify:** `pytest tests/property/test_arbiter.py::test_red_team_acknowledgment -v`
+
+- [ ] 6. Implement critical flaw handling (~45 min)
+  - [ ] 6.1 Add logic to detect unaddressed critical flaws (~35 min)
+    - Check if Red Team found critical severity items
+    - Check if arbiter's `critical_flaws_addressed` is False
+    - Force `needs_more_research` judgement if unaddressed
+    - _Requirements: 4.4_
+    - **Depends on:** Task 5.2
+    - **File:** `backend/orchestrator.py`
+    - **Verify (happy path):** `pytest tests/unit/test_critical_flaws.py::test_addressed_flaws_pass -v`
+    - **Verify (error case):** `pytest tests/unit/test_critical_flaws.py::test_unaddressed_flaws_force_revision -v`
+  - [ ] 6.2 Write property test for critical flaw cycle trigger (~10 min)
+    - **Property 6: Critical flaws trigger revision cycle**
+    - **Validates: Requirements 4.4**
+    - **Verify:** `pytest tests/property/test_critical_flaws.py -v`
+
+- [ ] 7. Update cycle output and logging (~30 min)
+  - [ ] 7.1 Add Red Team output to cycle results (~15 min)
+    - Include in `cycle_out` dictionary
+    - Save to `cycle_result.json`
+    - _Requirements: 1.3_
+    - **Verify:** Check `neura_lab_runs/components/*/cycle_result.json` contains "red_team" key
+  - [ ] 7.2 Update print statements for Red Team progress (~15 min)
+    - Add `[Red Team]` prefix for stage logging
+    - Print vulnerability score and recommendation
+    - _Requirements: 2.2_
+    - **Verify:** Run orchestrator and check console output for "[Red Team]" prefix
+
+- [ ] 8. Checkpoint - Ensure all tests pass
+  - **Unit tests:** `pytest tests/unit/test_red_team.py tests/unit/test_arbiter.py tests/unit/test_critical_flaws.py -v`
+  - **Property tests:** `pytest tests/property/test_red_team.py tests/property/test_arbiter.py -v`
+  - **Integration test:** `pytest tests/integration/test_red_team_pipeline.py -v`
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+
+- [ ] 9. Implement Blind Red Teaming (~1.5 hours)
+  - [ ] 9.1 Create BlindRedTeamRunner class (~1.5 hours)
+    - Run red team without providing main conclusions
+    - Red team receives only evidence
+    - Compare red team conclusions to main conclusions
+    - _Requirements: 6.1, 6.2, 6.3, 6.4_
+    - **Depends on:** Task 2.2
+    - **Verify:** `pytest tests/unit/test_blind_red_team.py -v`
+  - [ ] 9.2 Write property test for blind red teaming (~15 min)
+    - **Property 10: Red team forms independent conclusions**
+    - **Validates: Requirements 6.1-6.4**
+    - **Verify:** `pytest tests/property/test_blind_red_team.py -v`
+
+- [ ] 10. Implement Persona-Based Red Teaming (~2 hours)
+  - [ ] 10.1 Create adversarial personas (~1 hour)
+    - "Skeptical domain expert who's seen 100 failed projects"
+    - "Regulator looking for compliance issues"
+    - "Competitor looking for weaknesses to exploit"
+    - "Naive user who will misuse this"
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+    - **Verify:** `python -c "from backend.orchestrator import ADVERSARIAL_PERSONAS; print(len(ADVERSARIAL_PERSONAS))"`
+  - [ ] 10.2 Implement persona synthesis (~45 min)
+    - Run each persona independently
+    - Synthesize findings across all personas
+    - _Requirements: 7.6_
+    - **Verify:** `pytest tests/unit/test_persona_red_team.py -v`
+  - [ ] 10.3 Write property test for persona coverage (~15 min)
+    - **Property 11: All personas are executed**
+    - **Validates: Requirements 7.1-7.6**
+    - **Verify:** `pytest tests/property/test_persona_red_team.py -v`
+
+- [ ] 11. Implement Red Team Refutation (~1.5 hours)
+  - [ ] 11.1 Create RefutationRound class (~1.5 hours)
+    - Allow main agents to refute red team findings
+    - Require evidence-based counter-arguments
+    - Mark findings as "addressed" or "confirmed risk"
+    - _Requirements: 8.1, 8.2, 8.3, 8.4_
+    - **Verify:** `pytest tests/unit/test_refutation.py -v`
+  - [ ] 11.2 Write property test for refutation (~15 min)
+    - **Property 12: Refutations are evidence-based**
+    - **Validates: Requirements 8.1-8.4**
+    - **Verify:** `pytest tests/property/test_refutation.py -v`
+
+- [ ] 12. Final Checkpoint - Verify advanced red team features
+  - **All tests:** `pytest tests/unit/test_*red_team*.py tests/unit/test_refutation.py -v`
+  - **Property tests:** `pytest tests/property/test_*red_team*.py tests/property/test_refutation.py -v`
+  - **If failing:** Review test output, fix issues before continuing.
+  - **Rollback:** `git checkout backend/orchestrator.py` if advanced features break core pipeline

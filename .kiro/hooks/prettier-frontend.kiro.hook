@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Prettier Frontend",
+  "description": "Auto-format TypeScript/React files with Prettier. Runs independently from frontend-quality hook - formatting (Prettier) runs first, then linting (ESLint) via frontend-quality.",
+  "version": "2",
+  "when": {
+    "type": "onFileSave",
+    "patterns": ["frontend/src/**/*.ts", "frontend/src/**/*.tsx", "frontend/src/**/*.css"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "cd frontend && npx prettier --write ${file}"
+  }
+}

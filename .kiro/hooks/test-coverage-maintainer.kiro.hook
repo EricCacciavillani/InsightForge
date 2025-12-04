@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Test Coverage Maintainer",
+  "description": "Identify new or modified functions and ensure corresponding test cases exist (backend + frontend)",
+  "version": "3",
+  "when": {
+    "type": "onFileSave",
+    "patterns": ["backend/**/*.py", "api/**/*.py", "frontend/src/**/*.tsx", "frontend/src/**/*.ts"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check test coverage for the modified file:\n\nFor Python files (backend/, api/):\n1. Look for corresponding test file in tests/ (e.g., backend/foo.py → tests/test_foo.py)\n2. Identify public functions/classes in the modified file\n3. Check if tests exist for each public function\n\nFor TypeScript/React files (frontend/src/):\n1. Look for corresponding test file with .test.tsx or .test.ts suffix\n2. For components: check if render tests exist\n3. For hooks: check if hook behavior tests exist\n4. For utilities: check if function tests exist\n\nOnly report if there are untested public functions/components. Be concise - just list the names that need tests."
+  }
+}

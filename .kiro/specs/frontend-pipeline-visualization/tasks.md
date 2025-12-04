@@ -1,0 +1,365 @@
+# Implementation Plan
+
+- [ ] 1. Create pipeline visualization components (~2 hours)
+  - [ ] 1.1 Create PipelineTimeline component (~1 hour)
+    - Show all stages grouped by category
+    - Show status indicators (pending/running/completed/failed/skipped)
+    - Highlight current stage
+    - _Requirements: 1.1, 1.2, 1.3, 1.4_
+    - **File:** `frontend/src/components/PipelineTimeline.tsx`
+    - **Done when:**
+      - Timeline shows all pipeline stages
+      - Status colors: gray=pending, blue=running, green=completed, red=failed
+      - Current stage has pulsing indicator
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/PipelineTimeline.test.tsx`
+  - [ ] 1.2 Create StageCard component (~30 min)
+    - Show stage name, status, duration
+    - Show error message if failed
+    - Show skip reason if skipped
+    - _Requirements: 1.2, 1.3, 1.4_
+    - **File:** `frontend/src/components/StageCard.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/StageCard.test.tsx`
+  - [ ] 1.3 Create StageIndicator component (~15 min)
+    - Small visual indicator for timeline
+    - Color-coded by status
+    - _Requirements: 1.2_
+    - **File:** `frontend/src/components/StageIndicator.tsx`
+    - **Verify:** Visual inspection in Storybook or dev mode
+
+- [ ] 2. Create hierarchical learning components (~2 hours)
+  - [ ] 2.1 Create SystemFoundationCard component (~45 min)
+    - Display domain concepts
+    - Display architecture patterns
+    - Display known tradeoffs
+    - _Requirements: 2.1_
+    - **File:** `frontend/src/components/SystemFoundationCard.tsx`
+    - **Done when:**
+      - Card shows collapsible sections for concepts, patterns, tradeoffs
+      - Each item shows name and description
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/SystemFoundationCard.test.tsx`
+  - [ ] 2.2 Create RelationshipGraph component (~1 hour)
+    - Visualize component nodes
+    - Draw edges with relationship types
+    - Show budget allocations on nodes
+    - _Requirements: 2.2, 2.3_
+    - **File:** `frontend/src/components/RelationshipGraph.tsx`
+    - **Done when:**
+      - Graph renders nodes for each component
+      - Edges show relationship type (depends_on, interfaces_with)
+      - Node badges show budget allocation
+    - **Verify:** Visual inspection with sample data
+  - [ ] 2.3 Create ConflictAlert component (~15 min)
+    - Highlight constraint conflicts
+    - Show affected components
+    - _Requirements: 2.4_
+    - **File:** `frontend/src/components/ConflictAlert.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/ConflictAlert.test.tsx`
+
+- [ ] 3. Create foundation knowledge components (~2 hours)
+  - [ ] 3.1 Create FoundationViewer component (~45 min)
+    - Tabbed interface for different sections
+    - Show confidence score badge
+    - _Requirements: 3.1, 3.3_
+    - **File:** `frontend/src/components/FoundationViewer.tsx`
+    - **Done when:**
+      - Tabs: Concepts, Claims, Debates, Questions
+      - Confidence badge shows overall score with color
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/FoundationViewer.test.tsx`
+  - [ ] 3.2 Create ConceptList component (~30 min)
+    - Browsable list of concepts
+    - Show definitions and related concepts
+    - _Requirements: 3.2_
+    - **File:** `frontend/src/components/ConceptList.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/ConceptList.test.tsx`
+  - [ ] 3.3 Create DebateList component (~30 min)
+    - Show open debates with both positions
+    - _Requirements: 3.4_
+    - **File:** `frontend/src/components/DebateList.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/DebateList.test.tsx`
+  - [ ] 3.4 Create QuestionList component (~15 min)
+    - Show open questions with confidence
+    - Show uncertainty reasons
+    - _Requirements: 3.3_
+    - **File:** `frontend/src/components/QuestionList.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/QuestionList.test.tsx`
+
+- [ ] 4. Checkpoint - Verify foundation components
+  - **All component tests:** `cd frontend && npm run test -- --run src/__tests__/*Foundation*.test.tsx src/__tests__/*Concept*.test.tsx`
+  - **Visual inspection:** Run dev server, verify components render correctly
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+
+- [ ] 5. Create hypothesis and evidence components (~1.5 hours)
+  - [ ] 5.1 Create HypothesisEvidence component (~45 min)
+    - Side-by-side agent comparison
+    - _Requirements: 4.1, 4.4_
+    - **File:** `frontend/src/components/HypothesisEvidence.tsx`
+    - **Done when:**
+      - Two columns: Agent A and Agent B
+      - Each shows hypotheses and supporting evidence
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/HypothesisEvidence.test.tsx`
+  - [ ] 5.2 Create HypothesisList component (~30 min)
+    - Show hypothesis statements
+    - Show confidence and research questions
+    - _Requirements: 4.1_
+    - **File:** `frontend/src/components/HypothesisList.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/HypothesisList.test.tsx`
+  - [ ] 5.3 Create EvidenceList component (~30 min)
+    - Show sources with titles and snippets
+    - Indicate support/contradict relationship
+    - Show relevance scores
+    - _Requirements: 4.2, 4.3_
+    - **File:** `frontend/src/components/EvidenceList.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/EvidenceList.test.tsx`
+
+- [ ] 6. Create red team components (~1.5 hours)
+  - [ ] 6.1 Create RedTeamReport component (~45 min)
+    - Summary header with recommendation
+    - Accordion sections for details
+    - _Requirements: 5.1, 5.4_
+    - **File:** `frontend/src/components/RedTeamReport.tsx`
+    - **Done when:**
+      - Header shows vulnerability score and recommendation
+      - Expandable sections for attack vectors, failure modes
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/RedTeamReport.test.tsx`
+  - [ ] 6.2 Create AttackVectorList component (~20 min)
+    - Show attack vectors with impact
+    - _Requirements: 5.2_
+    - **File:** `frontend/src/components/AttackVectorList.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/AttackVectorList.test.tsx`
+  - [ ] 6.3 Create FailureModeList component (~20 min)
+    - Show failure modes with severity
+    - Show mitigations
+    - _Requirements: 5.3_
+    - **File:** `frontend/src/components/FailureModeList.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/FailureModeList.test.tsx`
+  - [ ] 6.4 Create RecommendationBadge component (~10 min)
+    - Color-coded recommendation display
+    - Prominent for "reject"
+    - _Requirements: 5.4_
+    - **File:** `frontend/src/components/RecommendationBadge.tsx`
+    - **Verify:** Visual inspection - red for reject, yellow for revise, green for approve
+
+- [ ] 7. Create cost tracking components (~1 hour)
+  - [ ] 7.1 Create CostTracker component (~30 min)
+    - Show estimated vs actual cost
+    - Progress bar visualization
+    - _Requirements: 6.1, 6.4_
+    - **File:** `frontend/src/components/CostTracker.tsx`
+    - **Done when:**
+      - Shows "$X.XX / $Y.YY estimated"
+      - Progress bar fills as cost increases
+      - Warning color when approaching limit
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/CostTracker.test.tsx`
+  - [ ] 7.2 Create CostBreakdown component (~20 min)
+    - Show LLM calls and cost
+    - Show search queries and cost
+    - _Requirements: 6.3_
+    - **File:** `frontend/src/components/CostBreakdown.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/CostBreakdown.test.tsx`
+  - [ ] 7.3 Create StageDuration component (~10 min)
+    - Show duration per stage
+    - _Requirements: 6.2_
+    - **File:** `frontend/src/components/StageDuration.tsx`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/StageDuration.test.tsx`
+
+- [ ] 8. Checkpoint - Verify all components
+  - **All component tests:** `cd frontend && npm run test -- --run`
+  - **Visual inspection:** Check all components render in dev mode
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+
+- [ ] 9. Update API hooks (~1.5 hours)
+  - [ ] 9.1 Add useStages hook (~20 min)
+    - Fetch stage status
+    - Subscribe to WebSocket updates
+    - _Requirements: 1.1, 1.2_
+    - **File:** `frontend/src/hooks/useStages.ts`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/useStages.test.ts`
+  - [ ] 9.2 Add useFoundation hook (~15 min)
+    - Fetch foundation knowledge for component
+    - _Requirements: 3.1_
+    - **File:** `frontend/src/hooks/useFoundation.ts`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/useFoundation.test.ts`
+  - [ ] 9.3 Add useHypotheses hook (~15 min)
+    - Fetch hypotheses and evidence
+    - _Requirements: 4.1, 4.2_
+    - **File:** `frontend/src/hooks/useHypotheses.ts`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/useHypotheses.test.ts`
+  - [ ] 9.4 Add useRedTeam hook (~15 min)
+    - Fetch red team report
+    - _Requirements: 5.1_
+    - **File:** `frontend/src/hooks/useRedTeam.ts`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/useRedTeam.test.ts`
+  - [ ] 9.5 Add useRelationships hook (~15 min)
+    - Fetch system foundation and relationship map
+    - _Requirements: 2.1, 2.2_
+    - **File:** `frontend/src/hooks/useRelationships.ts`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/useRelationships.test.ts`
+  - [ ] 9.6 Add useCost hook (~15 min)
+    - Fetch and subscribe to cost updates
+    - _Requirements: 6.1_
+    - **File:** `frontend/src/hooks/useCost.ts`
+    - **Verify:** `cd frontend && npm run test -- --run src/__tests__/useCost.test.ts`
+
+- [ ] 10. Update RunOrchestrator page (~1 hour)
+  - [ ] 10.1 Add PipelineTimeline to run view (~30 min)
+    - Show during active run
+    - Update via WebSocket
+    - _Requirements: 1.1_
+    - **File:** `frontend/src/pages/RunOrchestrator.tsx`
+    - **Verify:** Start run, verify timeline updates in real-time
+  - [ ] 10.2 Add CostTracker to run view (~15 min)
+    - Show real-time cost
+    - _Requirements: 6.1_
+    - **Verify:** Start run, verify cost updates
+  - [ ] 10.3 Add cost tier selector (~15 min)
+    - Quick/Standard/Thorough options
+    - Show expected cost range
+    - _Requirements: 6.4_
+    - **Verify:** Select tier, verify estimate changes
+
+- [ ] 11. Update Results page (~2 hours)
+  - [ ] 11.1 Add tabbed result viewer (~45 min)
+    - Tabs for each component
+    - Sub-tabs for foundation, hypotheses, red team
+    - _Requirements: 3.1, 4.1, 5.1_
+    - **File:** `frontend/src/pages/Results.tsx`
+    - **Verify:** Open completed run, verify tabs work
+  - [ ] 11.2 Add RelationshipGraph to results (~30 min)
+    - Show system-level view
+    - _Requirements: 2.2_
+    - **Verify:** Open results, verify graph renders
+  - [ ] 11.3 Add FoundationViewer to results (~20 min)
+    - Per-component foundation display
+    - _Requirements: 3.1_
+    - **Verify:** Click component tab, verify foundation shows
+  - [ ] 11.4 Add HypothesisEvidence to results (~20 min)
+    - Per-component hypothesis comparison
+    - _Requirements: 4.1_
+    - **Verify:** Click hypotheses sub-tab, verify comparison shows
+  - [ ] 11.5 Add RedTeamReport to results (~15 min)
+    - Per-component red team findings
+    - _Requirements: 5.1_
+    - **Verify:** Click red team sub-tab, verify report shows
+
+- [ ] 12. Add backend API endpoints (~2 hours)
+  - [ ] 12.1 Add GET /api/run/:id/stages endpoint (~20 min)
+    - Return all stages with status
+    - _Requirements: 1.1_
+    - **File:** `api/server.py`
+    - **Verify:** `curl http://127.0.0.1:8742/api/run/test/stages`
+  - [ ] 12.2 Add GET /api/run/:id/foundation/:component endpoint (~20 min)
+    - Return foundation knowledge
+    - _Requirements: 3.1_
+    - **Verify:** `curl http://127.0.0.1:8742/api/run/test/foundation/comp1`
+  - [ ] 12.3 Add GET /api/run/:id/hypotheses/:component endpoint (~20 min)
+    - Return hypotheses and evidence
+    - _Requirements: 4.1_
+    - **Verify:** `curl http://127.0.0.1:8742/api/run/test/hypotheses/comp1`
+  - [ ] 12.4 Add GET /api/run/:id/red-team/:component endpoint (~20 min)
+    - Return red team report
+    - _Requirements: 5.1_
+    - **Verify:** `curl http://127.0.0.1:8742/api/run/test/red-team/comp1`
+  - [ ] 12.5 Add GET /api/run/:id/relationships endpoint (~20 min)
+    - Return system foundation and relationship map
+    - _Requirements: 2.1_
+    - **Verify:** `curl http://127.0.0.1:8742/api/run/test/relationships`
+  - [ ] 12.6 Add WebSocket events for stage and cost updates (~30 min)
+    - Emit stage_update events
+    - Emit cost_update events
+    - _Requirements: 1.2, 6.1_
+    - **Verify:** Connect to WS, start run, verify events received
+
+- [ ] 13. Implement Document Upload UI (~1.5 hours)
+  - [ ] 13.1 Create DocumentUploadArea component (~45 min)
+    - Drag & drop file upload zone
+    - Support PDF, DOCX, TXT, MD formats
+    - Show upload progress indicator
+    - _Requirements: 9.1, 9.2_
+    - **File:** `frontend/src/components/DocumentUploadArea.tsx`
+    - **Verify:** Drag file, verify upload progress shows
+  - [ ] 13.2 Create DocumentList component (~30 min)
+    - Display uploaded documents with status
+    - Show processing progress spinner
+    - Display figure/equation counts when complete
+    - _Requirements: 9.3, 9.5_
+    - **File:** `frontend/src/components/DocumentList.tsx`
+    - **Verify:** Upload document, verify status updates
+  - [ ] 13.3 Add document status polling (~15 min)
+    - Poll backend for processing status
+    - Update UI when processing completes
+    - Show extracted content preview on click
+    - _Requirements: 9.4, 9.6_
+    - **Verify:** Upload document, wait for processing, click to preview
+
+- [ ] 14. Implement Pre-Run Analysis Preview (~1 hour)
+  - [ ] 14.1 Create PreRunPreview component (~30 min)
+    - Display extracted components as chips
+    - Show primary topics prominently
+    - List sub-components and key concepts
+    - Show research questions
+    - _Requirements: 10.1, 10.2, 10.3, 10.4_
+    - **File:** `frontend/src/components/PreRunPreview.tsx`
+    - **Verify:** Upload document, verify preview shows extracted components
+  - [ ] 14.2 Add complexity visualization (~15 min)
+    - Complexity score meter/bar
+    - Highlight ambiguous sections
+    - _Requirements: 10.5_
+    - **Verify:** Upload complex document, verify complexity indicator
+  - [ ] 14.3 Add component editing (~15 min)
+    - Allow editing component names before run
+    - Update cost estimate on edit
+    - _Requirements: 10.6_
+    - **Verify:** Edit component name, verify estimate updates
+
+- [ ] 15. Implement Cost Estimation UI (~1 hour)
+  - [ ] 15.1 Create CostEstimator component (~30 min)
+    - Tier selector (quick/standard/thorough)
+    - Cost range display (min-max)
+    - Stage-by-stage breakdown table
+    - _Requirements: 11.1, 11.2, 11.3_
+    - **File:** `frontend/src/components/CostEstimator.tsx`
+    - **Verify:** Select tier, verify breakdown updates
+  - [ ] 15.2 Add cost warnings (~15 min)
+    - Display warning flags prominently
+    - Highlight high-cost runs in red
+    - _Requirements: 11.5_
+    - **Verify:** Configure expensive run, verify warning shows
+  - [ ] 15.3 Add real-time cost updates (~15 min)
+    - Recalculate when tier changes
+    - Update on component edits
+    - _Requirements: 11.4_
+    - **Verify:** Change tier, verify estimate updates immediately
+
+- [ ] 16. Implement Run Confirmation Dialog (~30 min)
+  - [ ] 16.1 Create RunConfirmationDialog component (~20 min)
+    - Summary of documents and components
+    - Cost estimate display
+    - Confirm/Cancel buttons
+    - _Requirements: 12.1, 12.2, 12.3, 12.4_
+    - **File:** `frontend/src/components/RunConfirmationDialog.tsx`
+    - **Verify:** Click start, verify dialog shows summary
+  - [ ] 16.2 Add high-cost protection (~10 min)
+    - Checkbox required for runs >$5
+    - Disable confirm until checked
+    - _Requirements: 12.5_
+    - **Verify:** Configure >$5 run, verify checkbox required
+
+- [ ] 17-22. Additional visualization components
+  - See remaining tasks in original spec for Document Viewer, Discrepancy Log, PDF Download, Research Mode Selection, etc.
+  - Each follows same pattern: component creation, testing, integration
+
+- [ ] 23. Final Checkpoint - Verify complete visualization
+  - **All frontend tests:** `cd frontend && npm run test -- --run`
+  - **All backend tests:** `pytest tests/`
+  - **Integration test:** Start backend, run frontend, complete full flow
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+  - **Rollback:** `git checkout frontend/src/` if visualization breaks existing functionality
+
+- [ ] 24-30. UX Enhancement tasks
+  - Progressive Disclosure UI, Real-Time Confidence Display, Explainability Panel, Output Format Selector, Confidence Map, Surprising Findings
+  - Each follows same pattern with verification commands
+
+- [ ] 30. Final Checkpoint - Verify UX enhancements
+  - **All tests pass:** `cd frontend && npm run test -- --run && pytest tests/`
+  - **Visual inspection:** All new features render correctly
+  - **If failing:** Review and fix before continuing

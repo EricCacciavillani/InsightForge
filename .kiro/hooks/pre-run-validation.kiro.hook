@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Environment Check",
+  "description": "Verify API keys are set when config changes",
+  "version": "3",
+  "when": {
+    "type": "onFileChange",
+    "patterns": ["backend/config.py"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "python -c \"import os; keys=['OPENAI_API_KEY','GEMINI_API_KEY','TAVILY_API_KEY']; missing=[k for k in keys if not os.environ.get(k)]; print('Missing API keys:',missing) if missing else print('All API keys configured')\""
+  }
+}

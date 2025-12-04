@@ -1,0 +1,282 @@
+# Implementation Plan
+
+This is a META-SPEC. Tasks here are about INTEGRATION, not implementing the individual features (those are in their own specs).
+
+## Prerequisites
+
+Before starting this spec, complete:
+1. ✅ orchestrator-refactor (modular stage architecture)
+2. ✅ hierarchical-learning (system survey, relationships, constraints)
+3. ✅ intelligent-research-system (foundation learning, hypotheses, evidence)
+4. ✅ red-team-agent (adversarial analysis)
+
+## Tasks
+
+- [ ] 1. Create integration data contracts (~1 hour)
+  - [ ] 1.1 Define HierarchicalOutput dataclass (~20 min)
+    - Include system_foundation, relationship_map, component_budgets
+    - Include research_order (topological sort)
+    - _Requirements: 2.1, 2.2_
+    - **File:** `backend/orchestrator.py` or `backend/pipeline_v2.py`
+    - **Done when:**
+      - Dataclass has all required fields with type hints
+      - Can be serialized to JSON
+    - **Verify:** `python -c "from backend.pipeline_v2 import HierarchicalOutput; print('OK')"`
+  - [ ] 1.2 Define IntelligentResearchOutput dataclass (~20 min)
+    - Include foundation, hypotheses_a/b, evidence_a/b
+    - _Requirements: 2.3_
+    - **Verify:** `python -c "from backend.pipeline_v2 import IntelligentResearchOutput; print('OK')"`
+  - [ ] 1.3 Define RedTeamInput dataclass (~10 min)
+    - Include component, paper_v2, research outputs, foundation
+    - _Requirements: 2.4_
+    - **Verify:** `python -c "from backend.pipeline_v2 import RedTeamInput; print('OK')"`
+  - [ ] 1.4 Write property test for data flow (~10 min)
+    - **Property 2: Data flow completeness**
+    - **Validates: Requirements 2.1, 2.2, 2.3, 2.4**
+    - **Verify:** `pytest tests/property/test_pipeline_v2.py::test_data_flow -v`
+
+- [ ] 2. Create PipelineV2Config (~1.5 hours)
+  - [ ] 2.1 Implement cost tier configuration (~45 min)
+    - Define quick/standard/thorough settings
+    - Implement derived properties (foundation_rounds, etc.)
+    - _Requirements: 3.1, 3.2, 3.3, 3.4_
+    - **File:** `backend/config.py`
+    - **Done when:**
+      - COST_TIERS dict with quick/standard/thorough
+      - Each tier has foundation_rounds, research_depth, red_team_intensity
+    - **Verify:** `python -c "from backend.config import COST_TIERS; print(COST_TIERS.keys())"`
+    - **Expected output:** `dict_keys(['quick', 'standard', 'thorough'])`
+  - [ ] 2.2 Implement feature toggles (~20 min)
+    - Add hierarchical_learning_enabled
+    - Add intelligent_research_enabled
+    - Add red_team_enabled
+    - _Requirements: 1.4, 5.2_
+    - **Verify:** `python -c "from backend.config import HIERARCHICAL_LEARNING_ENABLED; print('OK')"`
+  - [ ] 2.3 Add cost estimation (~30 min)
+    - Implement COST_ESTIMATES dictionary
+    - Add method to estimate run cost
+    - _Requirements: 3.1_
+    - **Done when:**
+      - estimate_cost(components, tier) returns dollar amount
+      - Estimates based on token counts per stage
+    - **Verify:** `python -c "from backend.config import estimate_cost; print(estimate_cost(['comp1'], 'quick'))"`
+  - [ ] 2.4 Write property test for cost tier propagation (~10 min)
+    - **Property 3: Cost tier propagation**
+    - **Validates: Requirements 3.1, 3.2, 3.3, 3.4**
+    - **Verify:** `pytest tests/property/test_pipeline_v2.py::test_cost_tier_propagation -v`
+
+- [ ] 3. Implement integration adapters (~1.5 hours)
+  - [ ] 3.1 Create HierarchicalToResearchAdapter (~45 min)
+    - Transform hierarchical output to research input
+    - Handle missing hierarchical data gracefully
+    - _Requirements: 2.1, 2.2, 4.1_
+    - **Depends on:** Task 1.1
+    - **Done when:**
+      - adapt() returns valid research input
+      - Returns default values when hierarchical data missing
+    - **Verify:** `pytest tests/unit/test_adapters.py::test_hierarchical_to_research -v`
+  - [ ] 3.2 Create ResearchToRedTeamAdapter (~30 min)
+    - Transform research output to red team input
+    - _Requirements: 2.4_
+    - **Verify:** `pytest tests/unit/test_adapters.py::test_research_to_red_team -v`
+  - [ ] 3.3 Create RedTeamToArbiterAdapter (~15 min)
+    - Transform red team output to arbiter input
+    - Handle missing red team data gracefully
+    - _Requirements: 2.4, 4.3_
+    - **Verify:** `pytest tests/unit/test_adapters.py::test_red_team_to_arbiter -v`
+
+- [ ] 4. Checkpoint - Verify adapters
+  - **Pre-flight:** Ensure Tasks 1-3 are complete
+  - **Unit tests:** `pytest tests/unit/test_adapters.py -v`
+  - **Property tests:** `pytest tests/property/test_pipeline_v2.py -v`
+  - **Import check:** `python -c "from backend.pipeline_v2 import HierarchicalToResearchAdapter; print('OK')"`
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+
+- [ ] 5. Implement graceful degradation (~2 hours)
+  - [ ] 5.1 Create DegradationManager (~45 min)
+    - Track which features failed
+    - Provide fallback behavior
+    - Log degradation events
+    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+    - **File:** `backend/pipeline_v2.py`
+    - **Done when:**
+      - DegradationManager tracks failed_features set
+      - get_fallback(feature) returns fallback config
+      - Logs "[Degradation] Feature X failed, using fallback"
+    - **Verify:** `pytest tests/unit/test_degradation.py -v`
+  - [ ] 5.2 Implement fallback for hierarchical learning (~20 min)
+    - Continue with component-only research
+    - Use empty system foundation
+    - _Requirements: 4.1_
+    - **Verify:** `pytest tests/unit/test_degradation.py::test_hierarchical_fallback -v`
+  - [ ] 5.3 Implement fallback for intelligent research (~20 min)
+    - Fall back to simple search
+    - Use basic foundation
+    - _Requirements: 4.2_
+    - **Verify:** `pytest tests/unit/test_degradation.py::test_research_fallback -v`
+  - [ ] 5.4 Implement fallback for red team (~15 min)
+    - Proceed to arbiter with warning
+    - Set red_team to None in context
+    - _Requirements: 4.3_
+    - **Verify:** `pytest tests/unit/test_degradation.py::test_red_team_fallback -v`
+  - [ ] 5.5 Write property test for graceful degradation (~20 min)
+    - **Property 4: Graceful degradation**
+    - **Validates: Requirements 4.1, 4.2, 4.3, 4.4**
+    - **Verify:** `pytest tests/property/test_degradation.py -v`
+
+- [ ] 6. Define PIPELINE_V2 stage list (~30 min)
+  - [ ] 6.1 Create pipeline definition (~20 min)
+    - List all stages in correct order
+    - Include stages from all specs
+    - _Requirements: 1.1, 1.2, 1.3_
+    - **File:** `backend/pipeline_v2.py`
+    - **Done when:**
+      - PIPELINE_V2_STAGES list defined
+      - Order: hierarchical -> foundation -> research -> debate -> red_team -> arbiter
+    - **Verify:** `python -c "from backend.pipeline_v2 import PIPELINE_V2_STAGES; print(PIPELINE_V2_STAGES)"`
+  - [ ] 6.2 Write property test for integration order (~10 min)
+    - **Property 1: Integration order**
+    - **Validates: Requirements 1.1, 1.2, 1.3**
+    - **Verify:** `pytest tests/property/test_pipeline_v2.py::test_stage_order -v`
+
+- [ ] 7. Create PipelineV2Runner (~1.5 hours)
+  - [ ] 7.1 Implement run_with_degradation method (~1 hour)
+    - Execute stages with try/catch
+    - Apply degradation on failure
+    - _Requirements: 4.1, 4.2, 4.3_
+    - **Depends on:** Tasks 5.1, 6.1
+    - **Done when:**
+      - run() executes all stages
+      - Failed stages trigger degradation, not crash
+      - Returns partial results on degradation
+    - **Verify:** `pytest tests/unit/test_pipeline_runner.py -v`
+  - [ ] 7.2 Implement configuration application (~30 min)
+    - Apply cost tier to all stages
+    - Apply feature toggles
+    - _Requirements: 5.1, 5.2, 5.3_
+    - **Done when:**
+      - Cost tier settings propagate to each stage
+      - Disabled features are skipped
+    - **Verify:** `pytest tests/unit/test_pipeline_runner.py::test_config_application -v`
+
+- [ ] 8. Update Orchestrator class (~45 min)
+  - [ ] 8.1 Add pipeline_v2 option (~30 min)
+    - Support both default and v2 pipelines
+    - _Requirements: 5.1_
+    - **File:** `backend/orchestrator.py`
+    - **Done when:**
+      - run(pipeline="v2") uses new pipeline
+      - run() defaults to original pipeline for backward compat
+    - **Verify:** `python -c "from backend.orchestrator import Orchestrator; print('OK')"`
+    - **Rollback:** `git checkout backend/orchestrator.py` if breaks existing pipeline
+  - [ ] 8.2 Add convenience methods (~15 min)
+    - Add run_quick(), run_standard(), run_thorough()
+    - _Requirements: 5.4_
+    - **Verify:** `python -c "from backend.orchestrator import Orchestrator; o = Orchestrator(); print(hasattr(o, 'run_quick'))"`
+
+- [ ] 9. Integration testing (~2 hours)
+  - [ ] 9.1 Test full pipeline with all features (~45 min)
+    - Run on sample components
+    - Verify all stages execute
+    - Verify data flows correctly
+    - _Requirements: 1.1, 2.1_
+    - **Verify:** `pytest tests/integration/test_pipeline_v2_full.py -v`
+  - [ ] 9.2 Test with features disabled (~30 min)
+    - Disable hierarchical learning
+    - Disable intelligent research
+    - Disable red team
+    - Verify graceful handling
+    - _Requirements: 1.4, 4.1_
+    - **Verify:** `pytest tests/integration/test_pipeline_v2_disabled.py -v`
+  - [ ] 9.3 Test with each cost tier (~30 min)
+    - Run quick, standard, thorough
+    - Verify settings propagate
+    - _Requirements: 3.1, 3.2, 3.3_
+    - **Verify:** `pytest tests/integration/test_pipeline_v2_tiers.py -v`
+  - [ ] 9.4 Test failure scenarios (~15 min)
+    - Simulate hierarchical failure
+    - Simulate research failure
+    - Simulate red team failure
+    - Verify degradation works
+    - _Requirements: 4.1, 4.2, 4.3_
+    - **Verify:** `pytest tests/integration/test_pipeline_v2_failures.py -v`
+
+- [ ] 10. Checkpoint - Verify complete integration
+  - **All unit tests:** `pytest tests/unit/test_pipeline*.py tests/unit/test_adapters.py tests/unit/test_degradation.py -v`
+  - **All property tests:** `pytest tests/property/test_pipeline_v2.py tests/property/test_degradation.py -v`
+  - **All integration tests:** `pytest tests/integration/test_pipeline_v2*.py -v`
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+
+- [ ] 11. Implement Resilient Pipeline (~1.5 hours)
+  - [ ] 11.1 Create StageResult dataclass (~30 min)
+    - Include status (success/partial/degraded/failed)
+    - Include quality_score, degradation_reasons
+    - Include can_proceed and human_intervention_options
+    - _Requirements: 6.1, 6.2, 6.3, 6.4_
+    - **Verify:** `python -c "from backend.pipeline_v2 import StageResult; print('OK')"`
+  - [ ] 11.2 Implement partial success handling (~45 min)
+    - Proceed with successful components on partial failure
+    - Offer recovery options on complete failure
+    - _Requirements: 6.2, 6.3_
+    - **Verify:** `pytest tests/unit/test_resilient_pipeline.py -v`
+  - [ ] 11.3 Write property test for resilient pipeline (~15 min)
+    - **Property 5: Pipeline handles partial failures**
+    - **Validates: Requirements 6.1-6.4**
+    - **Verify:** `pytest tests/property/test_resilient_pipeline.py -v`
+
+- [ ] 12. Implement Context Window Management (~1.5 hours)
+  - [ ] 12.1 Create ContextManager class (~1.5 hours)
+    - Track context budget usage
+    - Implement compression levels (full, summary, reference_only)
+    - Allow on-demand full content retrieval
+    - _Requirements: 7.1, 7.2, 7.3, 7.4_
+    - **Done when:**
+      - ContextManager tracks token usage
+      - compress(level) reduces context size
+      - get_full(reference) retrieves original content
+    - **Verify:** `pytest tests/unit/test_context_manager.py -v`
+  - [ ] 12.2 Write property test for context management (~15 min)
+    - **Property 6: Context stays within budget**
+    - **Validates: Requirements 7.1-7.4**
+    - **Verify:** `pytest tests/property/test_context_manager.py -v`
+
+- [ ] 13. Implement Decision Trace Logging (~1.5 hours)
+  - [ ] 13.1 Create DecisionTraceLogger class (~1.5 hours)
+    - Log reasoning with source references
+    - Log rejected options (counterfactual logging)
+    - Support replay with modified parameters
+    - Track source influence
+    - _Requirements: 8.1, 8.2, 8.3, 8.4_
+    - **Done when:**
+      - log_decision() records reasoning and sources
+      - log_rejected() records alternatives not chosen
+      - replay(decision_id, params) re-runs with changes
+    - **Verify:** `pytest tests/unit/test_decision_trace.py -v`
+  - [ ] 13.2 Write property test for decision tracing (~15 min)
+    - **Property 7: All decisions are logged**
+    - **Validates: Requirements 8.1-8.4**
+    - **Verify:** `pytest tests/property/test_decision_trace.py -v`
+
+- [ ] 14. Implement Cost Circuit Breakers (~1 hour)
+  - [ ] 14.1 Create CostCircuitBreaker class (~45 min)
+    - Pause at 2x estimated cost
+    - Warn when approaching limit
+    - Enforce hard budget
+    - Show completed work when paused
+    - _Requirements: 9.1, 9.2, 9.3, 9.4_
+    - **Done when:**
+      - check() raises CostLimitExceeded at 2x estimate
+      - warn() logs at 1.5x estimate
+      - get_completed_work() returns partial results
+    - **Verify:** `pytest tests/unit/test_cost_breaker.py -v`
+  - [ ] 14.2 Write property test for cost limits (~15 min)
+    - **Property 8: Cost limits are enforced**
+    - **Validates: Requirements 9.1-9.4**
+    - **Verify:** `pytest tests/property/test_cost_breaker.py -v`
+
+- [ ] 15. Final Checkpoint - Verify resilience features
+  - **All unit tests:** `pytest tests/unit/test_resilient*.py tests/unit/test_context*.py tests/unit/test_decision*.py tests/unit/test_cost*.py -v`
+  - **All property tests:** `pytest tests/property/test_resilient*.py tests/property/test_context*.py tests/property/test_decision*.py tests/property/test_cost*.py -v`
+  - **Integration test:** `pytest tests/integration/test_pipeline_v2_resilience.py -v`
+  - **If failing:** Review test output, fix issues, re-run checkpoint before continuing.
+  - **Rollback:** `git checkout backend/` if resilience features break core pipeline
