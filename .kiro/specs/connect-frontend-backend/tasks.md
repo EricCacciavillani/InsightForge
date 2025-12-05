@@ -189,7 +189,7 @@ git push -u origin feature/connect-frontend-backend
   - Connection status changes
   - **Verify:** Trigger success/error actions, verify toasts appear
 
-- [ ] **Task 8.2**: Loading states everywhere (~30 min)
+- [x] **Task 8.2**: Loading states everywhere (~30 min)
 
   - Skeleton loaders
   - Disable buttons while loading

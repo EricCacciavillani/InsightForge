@@ -17,6 +17,7 @@ import { clsx } from 'clsx';
 import { getRuns, getRunDetails, exportRunAsZip, exportRunAsMarkdown, getRunSummary, downloadBlob } from '../hooks/useApi';
 import { useToast } from '../components/Toast';
 import { helpTexts } from '../components/Tooltip';
+import { SkeletonTreeItem, Skeleton } from '../components/Skeleton';
 
 interface TreeNode {
   id: string;
@@ -34,7 +35,7 @@ interface RunData {
   path: string;
 }
 
-function ExportButtons({ component, timestamp }: { component: string; timestamp: string }) {
+function ExportButtons({ component, timestamp, disabled }: { component: string; timestamp: string; disabled?: boolean }) {
   const [exporting, setExporting] = useState<'zip' | 'md' | null>(null);
   const [copied, setCopied] = useState(false);
   const toast = useToast();
@@ -85,8 +86,8 @@ function ExportButtons({ component, timestamp }: { component: string; timestamp:
       <div className="relative group">
         <button
           onClick={handleExportZip}
-          disabled={exporting !== null}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary bg-background hover:bg-surface-hover border border-border rounded-lg transition-colors disabled:opacity-50"
+          disabled={exporting !== null || disabled}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary bg-background hover:bg-surface-hover border border-border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {exporting === 'zip' ? (
             <Loader2 size={14} className="animate-spin" />
@@ -102,8 +103,8 @@ function ExportButtons({ component, timestamp }: { component: string; timestamp:
       <div className="relative group">
         <button
           onClick={handleExportMarkdown}
-          disabled={exporting !== null}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary bg-background hover:bg-surface-hover border border-border rounded-lg transition-colors disabled:opacity-50"
+          disabled={exporting !== null || disabled}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary bg-background hover:bg-surface-hover border border-border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {exporting === 'md' ? (
             <Loader2 size={14} className="animate-spin" />
@@ -119,7 +120,8 @@ function ExportButtons({ component, timestamp }: { component: string; timestamp:
       <div className="relative group">
         <button
           onClick={handleCopySummary}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary bg-background hover:bg-surface-hover border border-border rounded-lg transition-colors"
+          disabled={disabled}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary bg-background hover:bg-surface-hover border border-border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {copied ? (
             <Check size={14} className="text-success" />
@@ -305,15 +307,22 @@ export default function Results() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search results..."
-                className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent outline-none"
+                disabled={loading}
+                className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent outline-none disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
           
           <div className="p-2 max-h-[600px] overflow-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="animate-spin text-accent" size={24} />
+              <div className="space-y-1">
+                {/* Skeleton tree items for loading state */}
+                <SkeletonTreeItem depth={0} />
+                <SkeletonTreeItem depth={1} />
+                <SkeletonTreeItem depth={1} />
+                <SkeletonTreeItem depth={0} />
+                <SkeletonTreeItem depth={1} />
+                <SkeletonTreeItem depth={2} />
               </div>
             ) : results.length === 0 ? (
               <div className="text-center py-8 text-text-muted text-sm">
@@ -346,15 +355,24 @@ export default function Results() {
             {selectedRun && (
               <ExportButtons 
                 component={selectedRun.component} 
-                timestamp={selectedRun.timestamp} 
+                timestamp={selectedRun.timestamp}
+                disabled={detailsLoading}
               />
             )}
           </div>
           
           <div className="p-5 max-h-[600px] overflow-auto">
             {detailsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="animate-spin text-accent" size={24} />
+              <div className="space-y-4">
+                {/* Skeleton for details loading */}
+                <div>
+                  <Skeleton variant="text" width={120} height={16} className="mb-2" />
+                  <Skeleton variant="rectangular" height={200} className="w-full" />
+                </div>
+                <div>
+                  <Skeleton variant="text" width={150} height={16} className="mb-2" />
+                  <Skeleton variant="rectangular" height={150} className="w-full" />
+                </div>
               </div>
             ) : runDetails ? (
               <div className="space-y-4">

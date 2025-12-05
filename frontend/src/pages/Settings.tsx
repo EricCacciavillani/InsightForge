@@ -6,6 +6,7 @@ import { useToast } from '../components/Toast';
 import { useOffline } from '../contexts/OfflineContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { HelpTooltip, helpTexts } from '../components/Tooltip';
+import { SkeletonInput } from '../components/Skeleton';
 
 interface SettingSection {
   id: string;
@@ -236,7 +237,7 @@ export default function Settings() {
           </a>
           <button 
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || loading}
             className={clsx(
               "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50",
               isOnline 
@@ -284,8 +285,11 @@ export default function Settings() {
               </div>
 
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="animate-spin text-accent" size={24} />
+                <div className="space-y-4">
+                  {/* Skeleton inputs for API keys loading state */}
+                  <SkeletonInput />
+                  <SkeletonInput />
+                  <SkeletonInput />
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -390,8 +394,14 @@ export default function Settings() {
               </div>
 
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="animate-spin text-accent" size={24} />
+                <div className="space-y-6">
+                  {/* Skeleton for email settings loading state */}
+                  <div className="p-4 bg-background rounded-lg border border-border">
+                    <SkeletonInput />
+                  </div>
+                  <SkeletonInput />
+                  <SkeletonInput />
+                  <SkeletonInput />
                 </div>
               ) : (
                 <div className="space-y-6">

@@ -117,14 +117,16 @@ export default function Dashboard() {
           <div className="space-y-3">
             <button 
               onClick={() => navigate('/run')}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors"
+              disabled={loading}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Zap size={18} />
               <span className="font-medium">New Research Run</span>
             </button>
             <button 
               onClick={() => navigate('/results')}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-surface-hover hover:bg-surface-active text-text-primary rounded-lg transition-colors border border-border"
+              disabled={loading}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-surface-hover hover:bg-surface-active text-text-primary rounded-lg transition-colors border border-border disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Activity size={18} />
               <span className="font-medium">View All Results</span>

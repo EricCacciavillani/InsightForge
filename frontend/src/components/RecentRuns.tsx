@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle, Clock, XCircle, ChevronRight, Loader2 } from 'lucide-react';
+import { CheckCircle, Clock, XCircle, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { getRuns } from '../hooks/useApi';
+import { SkeletonListItem } from './Skeleton';
 
 interface Run {
   component: string;
@@ -94,8 +95,11 @@ export default function RecentRuns() {
       
       <div className="divide-y divide-border">
         {loading ? (
-          <div className="px-5 py-8 flex items-center justify-center">
-            <Loader2 className="animate-spin text-accent" size={24} />
+          <div>
+            {/* Skeleton list items for loading state */}
+            <SkeletonListItem />
+            <SkeletonListItem />
+            <SkeletonListItem />
           </div>
         ) : error ? (
           <div className="px-5 py-4 text-sm text-red-400">{error}</div>
