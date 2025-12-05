@@ -15,15 +15,29 @@ git push -u origin feature/electron-playwright-testing
 
 ---
 
-- [ ] 1. Set up Playwright for Electron (~1 hour)
-  - [ ] 1.1 Install Playwright and dependencies (~20 min)
+- [-] 1. Set up Playwright for Electron (~1 hour)
+
+
+
+
+
+  - [x] 1.1 Install Playwright and dependencies (~20 min)
+
+
     - Add `@playwright/test`, `playwright`, `pixelmatch`, `pngjs` to devDependencies
     - Create `playwright.config.ts` with Electron configuration
     - _Requirements: 1.1, 1.2_
     - **File:** `frontend/package.json`, `frontend/playwright.config.ts`
     - **Verify:** `cd frontend && npm install && npx playwright --version`
     - **Expected output:** `Version 1.x.x`
-  - [ ] 1.2 Create Electron test launcher utility (~30 min)
+  - [x] 1.2 Create Electron test launcher utility (~30 min)
+
+
+
+
+
+
+
     - Implement `ElectronTestRunner` class that launches app in test mode
     - Add environment variable `TEST_MODE=true` detection in main.js
     - Skip Python backend launch in test mode
@@ -38,8 +52,14 @@ git push -u origin feature/electron-playwright-testing
     - **Validates: Requirements 1.1, 1.2**
     - **Verify:** `cd frontend && npx playwright test e2e/property/launcher.spec.ts -v`
 
-- [ ] 2. Implement screenshot capture with task mapping (~1.5 hours)
-  - [ ] 2.1 Create ScreenshotManager class (~1 hour)
+- [-] 2. Implement screenshot capture with task mapping (~1.5 hours)
+
+
+
+
+  - [x] 2.1 Create ScreenshotManager class (~1 hour)
+
+
     - Implement `capture(page, taskId, index)` method
     - Generate filenames in format `task-{taskId}-{index}.png`
     - Store in configured screenshots directory
@@ -49,21 +69,46 @@ git push -u origin feature/electron-playwright-testing
       - capture() saves PNG to e2e/screenshots/
       - Filename includes task ID and sequential index
     - **Verify:** `cd frontend && npx playwright test --grep "screenshot" --reporter=list`
-  - [ ]* 2.2 Write property test for filename generation (~15 min)
+  - [x] 2.2 Write property test for filename generation (~15 min)
+
+
+
+
+
+
     - **Property 2: Screenshots include task ID in filename**
     - **Validates: Requirements 2.2, 3.1, 3.2**
     - **Verify:** `cd frontend && npx playwright test e2e/property/screenshot.spec.ts::filename -v`
-  - [ ]* 2.3 Write property test for sequential numbering (~15 min)
+  - [x] 2.3 Write property test for sequential numbering (~15 min)
+
+
+
+
+
+
     - **Property 3: Multiple screenshots are numbered sequentially**
     - **Validates: Requirements 2.3, 3.4**
-    - **Verify:** `cd frontend && npx playwright test e2e/property/screenshot.spec.ts::numbering -v`
-  - [ ]* 2.4 Write property test for directory containment (~10 min)
+    --**Verify:** `cd frontend && npx playwright test e2e/property/
+screenshot.spec.ts::numbering -v`
+  - [x] 2.4 Write property test for directory containment (~10 min)
+
+
+
+
+
     - **Property 4: Screenshots stored in correct directory**
     - **Validates: Requirements 2.4**
     - **Verify:** `cd frontend && npx playwright test e2e/property/screenshot.spec.ts::directory -v`
 
-- [ ] 3. Implement baseline comparison engine (~2 hours)
-  - [ ] 3.1 Create BaselineComparator class (~1 hour)
+- [x] 3. Implement baseline comparison engine (~2 hours)
+
+
+
+
+
+  - [x] 3.1 Create BaselineComparator class (~1 hour)
+
+
     - Implement `compare(actual, baseline)` using pixelmatch
     - Calculate diff percentage from pixel differences
     - Implement `isWithinThreshold(diffPercentage)` method
@@ -73,7 +118,9 @@ git push -u origin feature/electron-playwright-testing
       - compare() returns { diffPercentage, diffPixels, diffImage }
       - isWithinThreshold() uses configurable threshold (default 0.1%)
     - **Verify:** `cd frontend && npx playwright test --grep "comparator" --reporter=list`
-  - [ ] 3.2 Implement diff image generation (~30 min)
+  - [x] 3.2 Implement diff image generation (~30 min)
+
+
     - Generate visual diff highlighting changed areas
     - Save diff images to diffs/ directory
     - _Requirements: 5.2, 5.3_
@@ -81,7 +128,9 @@ git push -u origin feature/electron-playwright-testing
       - Diff image shows red pixels where screenshots differ
       - Saved to e2e/diffs/task-{taskId}-{index}-diff.png
     - **Verify:** Check e2e/diffs/ contains diff images after test run
-  - [ ] 3.3 Implement baseline management (~20 min)
+  - [x] 3.3 Implement baseline management (~20 min)
+
+
     - Auto-create baseline when none exists
     - Add `--update-baselines` flag to approve new screenshots
     - _Requirements: 4.3, 4.4_
@@ -89,16 +138,37 @@ git push -u origin feature/electron-playwright-testing
       - First run creates baseline in e2e/baselines/
       - --update-baselines overwrites existing baselines
     - **Verify:** `cd frontend && npx playwright test --update-baselines`
-  - [ ]* 3.4 Write property test for comparison threshold (~10 min)
+  - [x] 3.4 Write property test for comparison threshold (~10 min)
+
+
+
+
+
+
     - **Property 5: Baseline comparison detects differences**
     - **Validates: Requirements 4.1, 4.2**
+
     - **Verify:** `cd frontend && npx playwright test e2e/property/comparator.spec.ts::threshold -v`
-  - [ ]* 3.5 Write property test for baseline creation (~10 min)
+  - [x] 3.5 Write property test for baseline creation (~10 min)
+
+
+
+
+
+
+
+
+
     - **Property 6: Missing baseline creates new baseline**
     - **Validates: Requirements 4.3**
     - **Verify:** `cd frontend && npx playwright test e2e/property/comparator.spec.ts::baseline -v`
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
+
+
+
+
+
   - **Pre-flight:** Ensure Tasks 1-3 are complete
   - **All e2e tests:** `cd frontend && npx playwright test --reporter=list`
   - **Property tests:** `cd frontend && npx playwright test e2e/property/ --reporter=list`

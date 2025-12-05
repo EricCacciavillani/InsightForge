@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Push on Task Complete",
+  "description": "Auto-push to git when all tasks in a spec are marked complete",
+  "version": "1",
+  "when": {
+    "type": "onFileSave",
+    "patterns": [".kiro/specs/**/tasks.md"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A task file was saved. Check if all tasks are complete:\n1. Read the saved file\n2. Count tasks: [ ] = pending, [x] = complete\n3. If ALL tasks are [x] and NONE are [ ]:\n   - git add -A\n   - git commit -m 'Complete: {spec-name}' (extract spec name from file path)\n   - git push\n   - Report: 'Pushed: {spec-name} completed'\n4. If any tasks still pending [ ], say nothing."
+  }
+}

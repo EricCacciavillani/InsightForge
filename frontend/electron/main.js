@@ -7,7 +7,13 @@ let mainWindow;
 let pythonProcess;
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+const isTestMode = process.env.TEST_MODE === 'true';
 const CONDA_ENV_NAME = 'InsightForge';
+
+// Log test mode status
+if (isTestMode) {
+  console.log('[Electron] Running in TEST_MODE - Python backend will be skipped');
+}
 
 /**
  * Detect conda installation and get the path to conda executable
@@ -336,7 +342,13 @@ ipcMain.handle('setup-conda-env', async () => {
 });
 
 app.whenReady().then(() => {
-  startPythonBackend();
+  // Skip Python backend in test mode
+  if (!isTestMode) {
+    startPythonBackend();
+  } else {
+    console.log('[Electron] TEST_MODE: Skipping Python backend launch');
+  }
+  
   createWindow();
 
   app.on('activate', () => {
@@ -347,12 +359,16 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  stopPythonBackend();
+  if (!isTestMode) {
+    stopPythonBackend();
+  }
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
 app.on('before-quit', () => {
-  stopPythonBackend();
+  if (!isTestMode) {
+    stopPythonBackend();
+  }
 });

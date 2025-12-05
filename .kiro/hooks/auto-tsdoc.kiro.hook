@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Auto-Document TypeScript",
+  "description": "Adds TSDoc comments to undocumented exported functions and React components on save.",
+  "version": "1",
+  "when": {
+    "type": "onFileChange",
+    "patterns": [
+      "frontend/src/**/*.ts",
+      "frontend/src/**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A TypeScript file was saved. Add TSDoc comments to undocumented exports following these rules:\n\n## What to Document\n- Exported functions (export function, export const fn = )\n- Exported React components\n- Custom hooks (use* functions)\n- Exported interfaces/types with non-obvious purpose\n- Exported classes\n\n## What to SKIP\n- Internal/non-exported functions\n- Components in __tests__ folders\n- Simple event handlers (onClick, onChange)\n- Re-exports\n- Functions with existing TSDoc comments\n- Interfaces where property names are self-documenting\n\n## Format: TSDoc Standard\n```typescript\n/**\n * Fetch research runs from the API with optional filtering.\n *\n * @remarks\n * Uses the configured API base URL from context. Automatically\n * handles authentication and retries on network failure.\n *\n * @param filter - Optional filter criteria for runs\n * @param limit - Maximum results to return (default: 50)\n * @returns Promise resolving to array of research runs\n *\n * @example\n * ```ts\n * const runs = await fetchRuns({ status: 'completed' }, 10);\n * ```\n */\nexport async function fetchRuns(\n  filter?: RunFilter,\n  limit = 50\n): Promise<Run[]> {\n```\n\n## For React Components:\n```typescript\n/**\n * Displays real-time connection status to the backend API.\n *\n * @remarks\n * Shows a colored indicator (green/yellow/red) based on WebSocket\n * connection state. Automatically reconnects on disconnect.\n *\n * @param props - Component props\n * @param props.showLabel - Whether to show text label (default: true)\n */\nexport function ConnectionStatus({ showLabel = true }: Props) {\n```\n\n## For Hooks:\n```typescript\n/**\n * Hook for making API requests with loading and error state.\n *\n * @typeParam T - Expected response data type\n * @param endpoint - API endpoint path (without base URL)\n * @returns Object containing data, loading state, error, and refetch function\n *\n * @example\n * ```tsx\n * const { data, loading, error } = useApi<Run[]>('/runs');\n * ```\n */\nexport function useApi<T>(endpoint: string): UseApiResult<T> {\n```\n\n## Rules\n1. First line: Brief description, period at end\n2. @remarks: Only for complex functions needing context\n3. @param: Only if not obvious from TypeScript types\n4. @returns: Describe the value, not just the type\n5. @example: Only for hooks and complex utilities\n6. @typeParam: For generic type parameters\n7. NO @type tags (TypeScript handles this)\n8. Keep it concise - 3-6 lines typical\n\n## Actions\n1. Read the saved file\n2. Identify undocumented exports matching criteria\n3. Add TSDoc comments following format exactly\n4. Report: '[filename]: Added docs to: Component, useHook' or 'No documentation needed'\n\nDo NOT modify code logic. Only add TSDoc comments."
+  }
+}

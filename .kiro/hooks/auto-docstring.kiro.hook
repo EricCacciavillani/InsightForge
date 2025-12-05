@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Auto-Document Functions",
+  "description": "Adds Google-style docstrings to undocumented Python functions on save. Follows PEP 257 and Ruff D rules.",
+  "version": "2",
+  "when": {
+    "type": "onFileChange",
+    "patterns": [
+      "backend/**/*.py",
+      "api/**/*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A Python file was saved. Add docstrings to undocumented functions following these rules:\n\n## What to Document\n- Public functions (no leading underscore)\n- Public methods in classes\n- Classes without docstrings\n\n## What to SKIP\n- Functions with existing docstrings\n- Private functions (_name)\n- Dunder methods (__init__, __str__, etc.) unless complex\n- Simple property getters/setters\n- Functions under 3 lines with obvious purpose\n- Test functions (test_*)\n\n## Format: Google Style (PEP 257 + Ruff D compliant)\n```python\ndef fetch_research_data(component_id: str, depth: int = 3) -> ResearchResult | None:\n    \"\"\"Fetch research data for a component from the orchestrator.\n\n    Queries the research pipeline and returns structured results\n    including sources, confidence scores, and metadata.\n\n    Args:\n        component_id: Unique identifier for the research component.\n        depth: Number of recursive research rounds. Defaults to 3.\n\n    Returns:\n        Research result with sources and scores, or None if not found.\n\n    Raises:\n        OrchestratorError: If the pipeline fails to respond.\n        ValidationError: If component_id format is invalid.\n    \"\"\"\n```\n\n## Rules\n1. First line: Imperative mood, no period, under 79 chars\n2. Blank line after first line if there's more content\n3. Args: One line per param, type info only if not in signature\n4. Returns: Describe what, not the type (type is in signature)\n5. Raises: Only document exceptions actually raised in the function\n6. NO filler words: avoid 'This function', 'Method to', etc.\n7. Be specific: 'Fetch user by ID' not 'Get user data'\n\n## Actions\n1. Read the saved file\n2. Identify undocumented functions matching criteria above\n3. Add docstrings following the format exactly\n4. Report: '[filename]: Added docstrings to: func1, func2' or 'No documentation needed'\n\nDo NOT modify code logic. Only add docstrings."
+  }
+}
