@@ -1,5 +1,20 @@
 # Implementation Plan
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/hierarchical-learning
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/hierarchical-learning
+# Then create PR to merge into main
+```
+
+---
+
 - [ ] 1. Create hierarchical learning data structures (~1 hour)
   - [ ] 1.1 Add data classes for system foundation (~30 min)
     - Implement ArchitecturePattern, DomainConcept, KnownTradeoff dataclasses

@@ -1,16 +1,40 @@
 # Deep Research Lab - Project Rules
 
+## Terminal Defaults (IMPORTANT)
+
+When running ANY terminal/shell commands for this project:
+1. **Always activate conda first**: `conda activate InsightForge`
+2. **Working directory**: `/mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers`
+3. Unless explicitly told otherwise, all Python commands should run in the InsightForge environment
+
+Example command pattern:
+```bash
+conda activate InsightForge && <your_command>
+```
+
 ## Quick Start
 
-1. Install Python deps: `pip install -r requirements.txt`
-2. Install frontend deps: `cd frontend && npm install`
-3. Set environment variables (see "Obtaining API Keys" in tech.md):
+1. Create/activate conda environment:
+   ```bash
+   conda env create -f environment.yml   # First time only
+   conda activate InsightForge
+   ```
+2. Install Python deps: `pip install -r requirements.txt`
+3. Install frontend deps: `cd frontend && npm install`
+4. Set environment variables (see "Obtaining API Keys" in tech.md):
    - `OPENAI_API_KEY` (required)
    - `GEMINI_API_KEY` (required)
    - `TAVILY_API_KEY` (optional, for deep research)
-4. Start backend: `python -m api.server` (runs on port 8742)
-5. Start frontend: `cd frontend && npm run dev` (runs on port 5173)
-6. Or run Electron: `cd frontend && npm run electron:dev`
+5. Start backend: `python -m api.server` (runs on port 8742)
+6. Start frontend: `cd frontend && npm run dev` (runs on port 5173)
+7. Or run Electron: `cd frontend && npm run electron:dev` (auto-activates conda)
+
+## Conda Environment
+
+- Environment name: `InsightForge`
+- The Electron app automatically detects and uses the conda environment
+- If the environment doesn't exist, Electron will create it from `environment.yml`
+- Packages are auto-installed from `requirements.txt` on startup
 
 ## Code Style
 

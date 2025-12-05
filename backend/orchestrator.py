@@ -22,8 +22,42 @@ from .llm_clients import (
     call_llm, call_llm_json, deep_research_round,
     get_usage_stats, reset_usage_stats, run_parallel,
 )
-from .checkpoint import load_checkpoint, save_checkpoint, CheckpointManager
+from .checkpoint import load_checkpoint, save_checkpoint, CheckpointManager, RunState
 from .utils import slugify, safe_json_load, summarize_arbiter_feedback, notify_iphone
+
+
+# Pipeline stages for progress tracking (per cycle)
+PIPELINE_STAGES = [
+    "deep_research", "research", "debate", "reviewers", "paper_v1",
+    "critics", "paper_v1b", "verification", "meta_debate",
+    "meta_reviewers", "paper_v2", "final_arbiter", "arch_training"
+]
+
+# Global progress callback (set by API server)
+_progress_callback: Optional[callable] = None
+
+
+def set_progress_callback(callback: Optional[callable]) -> None:
+    """Set a callback function for progress updates."""
+    global _progress_callback
+    _progress_callback = callback
+
+
+def emit_progress(stage: str, node: str, cycle: int, total_cycles: int, total_nodes: int, current_node: int) -> None:
+    """Emit progress update if callback is set."""
+    if _progress_callback:
+        stage_idx = PIPELINE_STAGES.index(stage) if stage in PIPELINE_STAGES else 0
+        total_stages = len(PIPELINE_STAGES)
+        _progress_callback({
+            "stage": stage,
+            "node": node,
+            "cycle": cycle,
+            "total_cycles": total_cycles,
+            "stage_index": stage_idx,
+            "total_stages": total_stages,
+            "current_node": current_node,
+            "total_nodes": total_nodes,
+        })
 
 
 def get_backend(role: str, index: int = 0) -> str:
@@ -234,7 +268,16 @@ def build_child_summary(node_result: Dict) -> Dict:
 
 # -------------- MAIN PIPELINE --------------
 
-def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: Path, max_cycles: int, child_summaries: List[Dict]) -> Dict:
+def run_component_node_pipeline(
+    root_component: str,
+    node_meta: Dict,
+    node_dir: Path,
+    max_cycles: int,
+    child_summaries: List[Dict],
+    run_state: Optional[RunState] = None,
+    total_nodes: int = 1,
+    current_node_idx: int = 1,
+) -> Dict:
     node_name = node_meta.get("name", root_component)
     node_depth = node_meta.get("depth", 0)
     node_slug = slugify(f"d{node_depth}_{node_name}")
@@ -247,6 +290,9 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
     arbiter_feedback = None
     cycles = []
     
+    def _emit(stage: str, cycle: int):
+        emit_progress(stage, node_name, cycle, max_cycles, total_nodes, current_node_idx)
+    
     for cycle in range(1, max_cycles + 1):
         print(f"\n--- Cycle {cycle}/{max_cycles} ---")
         cycle_dir = node_dir / f"cycle_{cycle}"
@@ -257,6 +303,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
         # Deep research
         search_context, search_data = None, None
         if DEEP_RESEARCH_ENABLED:
+            _emit("deep_research", cycle)
             with CheckpointManager(cycle_dir, "deep_research", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
                 if cm.should_skip:
                     search_data = cm.cached_data
@@ -269,6 +316,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
                         cm.save(search_data)
         
         # Research rounds
+        _emit("research", cycle)
         with CheckpointManager(cycle_dir, "research", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 data = cm.cached_data
@@ -284,6 +332,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
         agentA_final, agentB_final = agentA_rounds[-1], agentB_rounds[-1]
         
         # Debate
+        _emit("debate", cycle)
         with CheckpointManager(cycle_dir, "debate", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 debate_md = cm.cached_data.get("debate", "")
@@ -293,6 +342,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
                 cm.save({"debate": debate_md})
         
         # Reviewers
+        _emit("reviewers", cycle)
         with CheckpointManager(cycle_dir, "reviewers", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 reviewers = cm.cached_data.get("reviewers", [])
@@ -302,6 +352,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
                 cm.save({"reviewers": reviewers})
         
         # Paper v1
+        _emit("paper_v1", cycle)
         with CheckpointManager(cycle_dir, "paper_v1", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 paper_v1 = cm.cached_data.get("paper", "")
@@ -311,6 +362,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
                 cm.save({"paper": paper_v1})
         
         # Critics
+        _emit("critics", cycle)
         with CheckpointManager(cycle_dir, "critics", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 critics = cm.cached_data.get("critics", [])
@@ -320,6 +372,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
                 cm.save({"critics": critics})
         
         # Paper v1b
+        _emit("paper_v1b", cycle)
         with CheckpointManager(cycle_dir, "paper_v1b", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 paper_v1b = cm.cached_data.get("paper", "")
@@ -329,6 +382,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
                 cm.save({"paper": paper_v1b})
         
         # Verification
+        _emit("verification", cycle)
         with CheckpointManager(cycle_dir, "verification", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 verifyA, verifyB = cm.cached_data.get("verifyA", {}), cm.cached_data.get("verifyB", {})
@@ -343,6 +397,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
                 cm.save({"verifyA": verifyA, "verifyB": verifyB})
         
         # Meta-debate
+        _emit("meta_debate", cycle)
         with CheckpointManager(cycle_dir, "meta_debate", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 meta_debate_md = cm.cached_data.get("meta_debate", "")
@@ -352,6 +407,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
                 cm.save({"meta_debate": meta_debate_md})
         
         # Meta reviewers
+        _emit("meta_reviewers", cycle)
         with CheckpointManager(cycle_dir, "meta_reviewers", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 meta_reviewers = cm.cached_data.get("meta_reviewers", [])
@@ -361,6 +417,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
                 cm.save({"meta_reviewers": meta_reviewers})
         
         # Paper v2
+        _emit("paper_v2", cycle)
         with CheckpointManager(cycle_dir, "paper_v2", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 paper_v2 = cm.cached_data.get("paper", "")
@@ -370,6 +427,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
                 cm.save({"paper": paper_v2})
         
         # Final arbiter
+        _emit("final_arbiter", cycle)
         with CheckpointManager(cycle_dir, "final_arbiter", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
             if cm.should_skip:
                 final_arbiter = cm.cached_data.get("arbiter", {})
@@ -385,6 +443,7 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
         # Arch/training spec if accepted
         arch_spec = None
         if judgement == "accept_for_implementation":
+            _emit("arch_training", cycle)
             with CheckpointManager(cycle_dir, "arch_training", cycle_checkpoint, CHECKPOINT_ENABLED) as cm:
                 if cm.should_skip:
                     arch_spec = cm.cached_data.get("arch_spec")
@@ -419,40 +478,187 @@ def run_component_node_pipeline(root_component: str, node_meta: Dict, node_dir: 
 
 # -------------- ROOT COMPONENT & SYSTEM INTEGRATION --------------
 
-def run_root_component(root_component: str) -> List[Dict]:
-    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    root_slug = slugify(root_component)
-    root_dir = COMPONENTS_ROOT / root_slug / ts
-    root_dir.mkdir(parents=True, exist_ok=True)
+class OrchestratorError(Exception):
+    """Custom exception for orchestrator failures with context."""
+    def __init__(self, message: str, component: str, node: Optional[str] = None,
+                 cycle: Optional[int] = None, stage: Optional[str] = None,
+                 original_error: Optional[Exception] = None):
+        super().__init__(message)
+        self.component = component
+        self.node = node
+        self.cycle = cycle
+        self.stage = stage
+        self.original_error = original_error
+
+
+def run_root_component(root_component: str, resume_dir: Optional[Path] = None) -> List[Dict]:
+    """
+    Run the orchestrator pipeline for a root component.
     
-    print(f"\n{'='*50}")
-    print(f"Root: {root_component}")
-    print(f"Dir: {root_dir}")
-    print(f"{'='*50}\n")
+    Args:
+        root_component: The component name to research
+        resume_dir: Optional path to resume a failed run from
     
-    print(f"[Stage 0] Decomposing ({get_backend('decomposer')})")
-    decomposition = run_decomposer(get_backend("decomposer"), root_component)
-    (root_dir / "decomposition.json").write_text(json.dumps(decomposition, indent=2), encoding="utf-8")
+    Returns:
+        List of node results
     
-    nodes = decomposition.get("nodes", [{"name": root_component, "depth": 0, "parent_name": None, "should_run_pipeline": True}])
-    nodes_to_run = sorted([n for n in nodes if n.get("should_run_pipeline")], key=lambda n: n.get("depth", 0), reverse=True)
+    Raises:
+        OrchestratorError: If the run fails, with context for resuming
+    """
+    # Determine run directory
+    if resume_dir and resume_dir.exists():
+        root_dir = resume_dir
+        ts = resume_dir.name
+        print(f"\n{'='*50}")
+        print(f"RESUMING: {root_component}")
+        print(f"Dir: {root_dir}")
+        print(f"{'='*50}\n")
+    else:
+        ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        root_slug = slugify(root_component)
+        root_dir = COMPONENTS_ROOT / root_slug / ts
+        root_dir.mkdir(parents=True, exist_ok=True)
+        print(f"\n{'='*50}")
+        print(f"Root: {root_component}")
+        print(f"Dir: {root_dir}")
+        print(f"{'='*50}\n")
     
-    node_results = []
-    node_results_by_name = {}
+    # Initialize run state tracking
+    run_state = RunState(root_dir)
     
-    for node in nodes_to_run:
-        node_name = node.get("name", root_component)
-        node_depth = node.get("depth", 0)
-        node_slug = slugify(f"d{node_depth}_{node_name}")
-        node_dir = root_dir / node_slug
+    # Mark as resumed if applicable
+    if resume_dir:
+        run_state.mark_resumed()
+    
+    run_state.save(
+        status=RunState.RUNNING,
+        component=root_component,
+        current_stage="decomposition",
+    )
+    
+    try:
+        # Check for existing decomposition (for resume)
+        decomp_file = root_dir / "decomposition.json"
+        if decomp_file.exists():
+            print("[Checkpoint] Loading existing decomposition...")
+            decomposition = json.loads(decomp_file.read_text(encoding="utf-8"))
+        else:
+            print(f"[Stage 0] Decomposing ({get_backend('decomposer')})")
+            decomposition = run_decomposer(get_backend("decomposer"), root_component)
+            decomp_file.write_text(json.dumps(decomposition, indent=2), encoding="utf-8")
         
-        child_summaries = [build_child_summary(node_results_by_name[other.get("name")]) for other in nodes if other.get("parent_name") == node_name and other.get("name") in node_results_by_name]
+        nodes = decomposition.get("nodes", [{"name": root_component, "depth": 0, "parent_name": None, "should_run_pipeline": True}])
+        nodes_to_run = sorted([n for n in nodes if n.get("should_run_pipeline")], key=lambda n: n.get("depth", 0), reverse=True)
+        total_nodes = len(nodes_to_run)
         
-        nr = run_component_node_pipeline(root_component, node, node_dir, max_cycles=3, child_summaries=child_summaries)
-        node_results.append(nr)
-        node_results_by_name[node_name] = nr
+        node_results = []
+        node_results_by_name = {}
+        
+        for node_idx, node in enumerate(nodes_to_run, 1):
+            node_name = node.get("name", root_component)
+            node_depth = node.get("depth", 0)
+            node_slug = slugify(f"d{node_depth}_{node_name}")
+            node_dir = root_dir / node_slug
+            
+            # Update run state
+            run_state.save(
+                status=RunState.RUNNING,
+                component=root_component,
+                current_node=node_name,
+                current_stage="node_pipeline",
+            )
+            
+            child_summaries = [build_child_summary(node_results_by_name[other.get("name")]) for other in nodes if other.get("parent_name") == node_name and other.get("name") in node_results_by_name]
+            
+            try:
+                nr = run_component_node_pipeline(
+                    root_component, node, node_dir, max_cycles=3,
+                    child_summaries=child_summaries, run_state=run_state,
+                    total_nodes=total_nodes, current_node_idx=node_idx
+                )
+                node_results.append(nr)
+                node_results_by_name[node_name] = nr
+            except Exception as e:
+                # Save failure state for resume
+                error_type = type(e).__name__
+                error_msg = str(e)
+                run_state.save(
+                    status=RunState.FAILED,
+                    component=root_component,
+                    current_node=node_name,
+                    error_message=error_msg,
+                    error_type=error_type,
+                )
+                print(f"\n❌ Run failed at node '{node_name}': {error_msg}")
+                print(f"💾 Checkpoint saved. Run can be resumed from: {root_dir}")
+                raise OrchestratorError(
+                    message=f"Pipeline failed at node '{node_name}': {error_msg}",
+                    component=root_component,
+                    node=node_name,
+                    original_error=e,
+                )
+        
+        # Mark run as completed
+        run_state.save(
+            status=RunState.COMPLETED,
+            component=root_component,
+        )
+        
+        return node_results
+        
+    except OrchestratorError:
+        # Re-raise orchestrator errors as-is
+        raise
+    except Exception as e:
+        # Catch any other unexpected errors
+        error_type = type(e).__name__
+        error_msg = str(e)
+        run_state.save(
+            status=RunState.FAILED,
+            component=root_component,
+            error_message=error_msg,
+            error_type=error_type,
+        )
+        print(f"\n❌ Run failed: {error_msg}")
+        print(f"💾 Checkpoint saved. Run can be resumed from: {root_dir}")
+        raise OrchestratorError(
+            message=f"Pipeline failed: {error_msg}",
+            component=root_component,
+            original_error=e,
+        )
+
+
+def resume_component(component_slug: str, timestamp: str) -> List[Dict]:
+    """
+    Resume a failed run from its checkpoint.
     
-    return node_results
+    Args:
+        component_slug: The slugified component name
+        timestamp: The timestamp of the run to resume
+    
+    Returns:
+        List of node results
+    """
+    run_dir = COMPONENTS_ROOT / component_slug / timestamp
+    if not run_dir.exists():
+        raise ValueError(f"Run directory not found: {run_dir}")
+    
+    run_state = RunState(run_dir)
+    if not run_state.is_resumable():
+        state = run_state.load()
+        status = state.get("status") if state else "unknown"
+        raise ValueError(f"Run cannot be resumed (status: {status})")
+    
+    # Get the original component name from decomposition
+    decomp_file = run_dir / "decomposition.json"
+    if decomp_file.exists():
+        decomposition = json.loads(decomp_file.read_text(encoding="utf-8"))
+        root_component = decomposition.get("root_component", component_slug)
+    else:
+        root_component = component_slug
+    
+    print(f"[Resume] Resuming run for '{root_component}' from {run_dir}")
+    return run_root_component(root_component, resume_dir=run_dir)
 
 
 def build_system_summary(all_results: List[Dict]) -> Dict:

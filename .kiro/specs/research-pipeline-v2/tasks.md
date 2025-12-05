@@ -1,5 +1,20 @@
 # Implementation Plan
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/research-pipeline-v2
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/research-pipeline-v2
+# Then create PR to merge into main
+```
+
+---
+
 This is a META-SPEC. Tasks here are about INTEGRATION, not implementing the individual features (those are in their own specs).
 
 ## Prerequisites

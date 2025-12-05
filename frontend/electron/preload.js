@@ -8,4 +8,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Platform info
   platform: process.platform,
+
+  // Backend status events
+  onBackendReady: (callback) => ipcRenderer.on('backend-ready', callback),
+  onBackendError: (callback) => ipcRenderer.on('backend-error', (_event, message) => callback(message)),
+  
+  // Remove listeners (for cleanup)
+  removeBackendListeners: () => {
+    ipcRenderer.removeAllListeners('backend-ready');
+    ipcRenderer.removeAllListeners('backend-error');
+  },
+
+  // Backend controls
+  getPythonInfo: () => ipcRenderer.invoke('get-python-info'),
+  restartBackend: () => ipcRenderer.invoke('restart-backend'),
+  setupCondaEnv: () => ipcRenderer.invoke('setup-conda-env'),
 });

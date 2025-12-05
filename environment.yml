@@ -1,4 +1,4 @@
-name: insight-forge
+name: InsightForge
 channels:
   - conda-forge
   - defaults

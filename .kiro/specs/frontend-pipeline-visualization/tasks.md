@@ -1,5 +1,20 @@
 # Implementation Plan
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/frontend-pipeline-visualization
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/frontend-pipeline-visualization
+# Then create PR to merge into main
+```
+
+---
+
 - [ ] 1. Create pipeline visualization components (~2 hours)
   - [ ] 1.1 Create PipelineTimeline component (~1 hour)
     - Show all stages grouped by category

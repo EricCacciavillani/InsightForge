@@ -1,5 +1,20 @@
 # Implementation Plan
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/conversational-planning
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/conversational-planning
+# Then create PR to merge into main
+```
+
+---
+
 ## Phase 1: Core Data Models
 
 - [ ] 1. Create planning module structure

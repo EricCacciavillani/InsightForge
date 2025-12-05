@@ -1,5 +1,20 @@
 # Implementation Plan
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/orchestrator-refactor
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/orchestrator-refactor
+# Then create PR to merge into main
+```
+
+---
+
 - [ ] 1. Create orchestrator package structure
   - [ ] 1.1 Create backend/orchestrator/ directory
     - Create __init__.py

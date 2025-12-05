@@ -70,6 +70,50 @@ const MyComponent: React.FC<Props> = ({ title, onSubmit, isLoading = false }) =>
 };
 ```
 
+## JSDoc Comments (Google-Style)
+
+Use JSDoc comments for exported functions, hooks, and complex components. Keep them concise.
+
+### Function/Hook Documentation
+
+```tsx
+/**
+ * Fetches and manages API connection state.
+ *
+ * @param endpoint - The API endpoint to connect to.
+ * @param options - Optional configuration for the request.
+ * @returns Object containing data, loading state, and error.
+ *
+ * @example
+ * const { data, loading } = useApi('/runs');
+ */
+export function useApi<T>(endpoint: string, options?: RequestOptions): ApiResult<T> {
+  // ...
+}
+```
+
+### Component Documentation
+
+```tsx
+/**
+ * Displays a tooltip on hover with customizable position.
+ *
+ * @param content - Text or element to display in tooltip.
+ * @param position - Where to show tooltip relative to children.
+ */
+export const Tooltip: React.FC<TooltipProps> = ({ content, position = 'top', children }) => {
+  // ...
+};
+```
+
+### Key Guidelines
+
+- First line: brief description of what it does
+- `@param` for each parameter (type comes from TypeScript)
+- `@returns` for non-void return values
+- `@example` for complex usage (optional)
+- Skip JSDoc for simple, self-explanatory components
+
 ## Testing
 
 - Unit tests for utilities and hooks

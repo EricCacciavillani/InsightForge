@@ -5,6 +5,7 @@
 
 # Output directory
 insight_forge_runs/
+neura_lab_runs/
 outputs/
 
 # Python

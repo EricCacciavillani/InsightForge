@@ -1,5 +1,20 @@
 # Implementation Plan
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/testing-infrastructure
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/testing-infrastructure
+# Then create PR to merge into main
+```
+
+---
+
 - [ ] 1. Set up Python testing framework (~1 hour)
   - [ ] 1.1 Add pytest and dependencies to requirements.txt (~10 min)
     - Add pytest, pytest-cov, pytest-asyncio, hypothesis

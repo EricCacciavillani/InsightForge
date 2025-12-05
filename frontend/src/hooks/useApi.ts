@@ -53,7 +53,7 @@ export function useApiQuery<T>(endpoint: string) {
 // -------------- WebSocket --------------
 
 export interface WsMessage {
-  type: 'log' | 'run_started' | 'run_complete' | 'run_error' | 'component_complete';
+  type: 'log' | 'run_started' | 'run_complete' | 'run_error' | 'component_complete' | 'progress';
   message?: string;
   components?: string[];
   component?: string;
@@ -65,6 +65,16 @@ export interface WsMessage {
     tavily_searches: number;
     estimated_cost: number;
   };
+  // Progress fields
+  stage?: string;
+  node?: string;
+  cycle?: number;
+  total_cycles?: number;
+  current_node?: number;
+  total_nodes?: number;
+  percent?: number;
+  elapsed_seconds?: number;
+  eta_seconds?: number;
 }
 
 export function useWebSocket(onMessage: (msg: WsMessage) => void) {
@@ -146,6 +156,20 @@ export async function getConfig() {
       gemini: boolean;
       tavily: boolean;
     };
+    api_keys_masked?: {
+      openai: string;
+      gemini: string;
+      tavily: string;
+    };
+    email_settings?: {
+      enabled: boolean;
+      smtp_server: string;
+      smtp_port: number;
+      email: string;
+      password_set: boolean;
+      recipient: string;
+      configured: boolean;
+    };
   }>('/config');
 }
 
@@ -153,10 +177,22 @@ export async function updateSettings(settings: {
   openai_key?: string;
   gemini_key?: string;
   tavily_key?: string;
+  email_enabled?: boolean;
+  smtp_server?: string;
+  smtp_port?: number;
+  smtp_email?: string;
+  smtp_password?: string;
+  email_recipient?: string;
 }) {
   return fetchApi<{ status: string }>('/settings', {
     method: 'POST',
     body: JSON.stringify(settings),
+  });
+}
+
+export async function sendTestEmail() {
+  return fetchApi<{ status: string; message: string }>('/test-email', {
+    method: 'POST',
   });
 }
 
@@ -181,4 +217,40 @@ export async function checkHealth(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// -------------- Export Functions --------------
+
+export async function exportRunAsZip(component: string, timestamp: string): Promise<Blob> {
+  const response = await fetch(`${API_BASE}/runs/${component}/${timestamp}/export/zip`);
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Export failed' }));
+    throw new Error(error.detail || `HTTP ${response.status}`);
+  }
+  return response.blob();
+}
+
+export async function exportRunAsMarkdown(component: string, timestamp: string): Promise<Blob> {
+  const response = await fetch(`${API_BASE}/runs/${component}/${timestamp}/export/markdown`);
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Export failed' }));
+    throw new Error(error.detail || `HTTP ${response.status}`);
+  }
+  return response.blob();
+}
+
+export async function getRunSummary(component: string, timestamp: string): Promise<string> {
+  const result = await fetchApi<{ summary: string }>(`/runs/${component}/${timestamp}/summary`);
+  return result.summary;
+}
+
+export function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

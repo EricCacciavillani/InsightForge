@@ -1,0 +1,35 @@
+
+> insight-forge@1.0.0 test
+> vitest --run src/__tests__/useApi.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend
+
+(node:13833) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend/postcss.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+stdout | src/__tests__/useApi.test.ts > useWebSocket > sets connected to true when WebSocket opens
+[WS] Connected
+
+stdout | src/__tests__/useApi.test.ts > useWebSocket > calls onMessage callback when message received
+[WS] Connected
+
+stdout | src/__tests__/useApi.test.ts > useWebSocket > reconnects after disconnect with 2 second delay
+[WS] Connected
+[WS] Disconnected, reconnecting...
+
+stdout | src/__tests__/useApi.test.ts > useWebSocket > closes WebSocket on unmount
+[WS] Connected
+
+stdout | src/__tests__/useApi.test.ts > useWebSocket > handles invalid JSON messages gracefully
+[WS] Connected
+
+ ✓ src/__tests__/useApi.test.ts (16 tests) 233ms
+
+ Test Files  1 passed (1)
+      Tests  16 passed (16)
+   Start at  17:27:35
+   Duration  42.83s (transform 121ms, setup 3.27s, collect 8.62s, tests 233ms, environment 21.88s, prepare 1.33s)
+

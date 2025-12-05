@@ -1,5 +1,20 @@
 # Implementation Plan
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/electron-playwright-testing
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/electron-playwright-testing
+# Then create PR to merge into main
+```
+
+---
+
 - [ ] 1. Set up Playwright for Electron (~1 hour)
   - [ ] 1.1 Install Playwright and dependencies (~20 min)
     - Add `@playwright/test`, `playwright`, `pixelmatch`, `pngjs` to devDependencies

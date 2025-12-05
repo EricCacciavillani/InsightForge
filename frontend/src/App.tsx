@@ -1,40 +1,50 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { WifiOff } from 'lucide-react';
 import Titlebar from './components/Titlebar';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import RunOrchestrator from './pages/RunOrchestrator';
 import Results from './pages/Results';
 import Settings from './pages/Settings';
-import { checkHealth } from './hooks/useApi';
+import { ToastProvider } from './components/Toast';
+import ErrorBoundary from './components/ErrorBoundary';
+import { OfflineProvider, useOffline } from './contexts/OfflineContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
-function App() {
+function AppContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [backendConnected, setBackendConnected] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const checkBackendHealth = async () => {
-      const isHealthy = await checkHealth();
-      setBackendConnected(isHealthy);
-    };
-
-    checkBackendHealth();
-
-    // Re-check every 10 seconds
-    const interval = setInterval(checkBackendHealth, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  const { isOnline, queuedActions, isRetrying } = useOffline();
 
   return (
     <BrowserRouter>
       <div className="h-screen flex flex-col bg-background">
-        <Titlebar backendConnected={backendConnected} />
-        {backendConnected === false && (
+        <Titlebar 
+          backendConnected={isOnline} 
+          queuedCount={queuedActions.length}
+          isRetrying={isRetrying}
+        />
+        {/* Offline Banner */}
+        {isOnline === false && (
           <div className="bg-red-600 text-white px-4 py-2 text-sm flex items-center justify-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            Backend not running. Start the API server with: <code className="bg-red-700 px-2 py-0.5 rounded">python -m api.server</code>
+            <WifiOff size={16} />
+            <span>
+              Backend offline. 
+              {queuedActions.length > 0 
+                ? ` ${queuedActions.length} action(s) queued - will retry when reconnected.`
+                : ' Start the API server with:'
+              }
+            </span>
+            {queuedActions.length === 0 && (
+              <code className="bg-red-700 px-2 py-0.5 rounded">python -m api.server</code>
+            )}
+          </div>
+        )}
+        {/* Retrying Banner */}
+        {isOnline === true && isRetrying && queuedActions.length > 0 && (
+          <div className="bg-blue-600 text-white px-4 py-2 text-sm flex items-center justify-center gap-2">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span>Syncing {queuedActions.length} queued action(s)...</span>
           </div>
         )}
         <div className="flex flex-1 overflow-hidden">
@@ -53,6 +63,20 @@ function App() {
         </div>
       </div>
     </BrowserRouter>
+  );
+}
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <ThemeProvider>
+        <ToastProvider>
+          <OfflineProvider>
+            <AppContent />
+          </OfflineProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

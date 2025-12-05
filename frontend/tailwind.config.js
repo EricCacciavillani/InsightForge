@@ -4,28 +4,29 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // Dark theme palette
+        // Theme-aware colors using CSS variables
         background: {
-          DEFAULT: '#0a0a0b',
-          secondary: '#111113',
-          tertiary: '#18181b',
+          DEFAULT: 'var(--color-background)',
+          secondary: 'var(--color-background-secondary)',
+          tertiary: 'var(--color-background-tertiary)',
         },
         surface: {
-          DEFAULT: '#1c1c1f',
-          hover: '#252529',
-          active: '#2e2e33',
+          DEFAULT: 'var(--color-surface)',
+          hover: 'var(--color-surface-hover)',
+          active: 'var(--color-surface-active)',
         },
         border: {
-          DEFAULT: '#27272a',
-          light: '#3f3f46',
+          DEFAULT: 'var(--color-border)',
+          light: 'var(--color-border-light)',
         },
         text: {
-          primary: '#fafafa',
-          secondary: '#a1a1aa',
-          muted: '#71717a',
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          muted: 'var(--color-text-muted)',
         },
         accent: {
           DEFAULT: '#6366f1', // Indigo

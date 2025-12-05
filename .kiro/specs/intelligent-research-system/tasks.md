@@ -1,5 +1,20 @@
 # Implementation Plan
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/intelligent-research-system
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/intelligent-research-system
+# Then create PR to merge into main
+```
+
+---
+
 ## Phase Overview
 
 This implementation is organized into 5 phases for better tracking:

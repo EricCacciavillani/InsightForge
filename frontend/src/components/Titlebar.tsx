@@ -14,9 +14,11 @@ declare global {
 
 interface TitlebarProps {
   backendConnected: boolean | null;
+  queuedCount?: number;
+  isRetrying?: boolean;
 }
 
-export default function Titlebar({ backendConnected }: TitlebarProps) {
+export default function Titlebar({ backendConnected, queuedCount = 0, isRetrying = false }: TitlebarProps) {
   const handleMinimize = () => window.electronAPI?.minimize();
   const handleMaximize = () => window.electronAPI?.maximize();
   const handleClose = () => window.electronAPI?.close();
@@ -33,7 +35,12 @@ export default function Titlebar({ backendConnected }: TitlebarProps) {
 
       {/* Connection status + Window controls */}
       <div className="flex items-center no-drag">
-        <ConnectionStatus connected={backendConnected} compact />
+        <ConnectionStatus 
+          connected={backendConnected} 
+          compact 
+          queuedCount={queuedCount}
+          isRetrying={isRetrying}
+        />
         <button
           onClick={handleMinimize}
           className="w-10 h-10 flex items-center justify-center hover:bg-surface text-text-secondary hover:text-text-primary"

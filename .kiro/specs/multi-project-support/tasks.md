@@ -1,8 +1,27 @@
 # Tasks: Multi-Project Research Support
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/multi-project-support
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/multi-project-support
+# Then create PR to merge into main
+```
+
+---
+
 ## Phase 1: Profile Data Model
 
 - [ ] **Task 1.1**: Create profile manager (~1.5 hours)
+
+
+
+
   - File: `backend/profiles/manager.py`
   - Profile dataclass/model
   - CRUD operations (create, read, update, delete)

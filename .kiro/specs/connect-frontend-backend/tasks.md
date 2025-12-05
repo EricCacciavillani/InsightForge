@@ -1,5 +1,20 @@
 # Tasks: Connect Frontend to Backend API
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/connect-frontend-backend
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/connect-frontend-backend
+# Then create PR to merge into main
+```
+
+---
+
 ## Phase 1: Connection Infrastructure
 
 - [x] **Task 1.1**: Add backend health check on app startup
@@ -14,7 +29,7 @@
 
 ## Phase 2: API Security & Environment Setup
 
-- [ ] **Task 2.1**: Set up .gitignore for API key protection (~15 min)
+- [x] **Task 2.1**: Set up .gitignore for API key protection (~15 min)
   - Create comprehensive `.gitignore` file at project root
   - Exclude `.env` files, `*.env`, `.env.*` patterns
   - Exclude `neura_lab_runs/` output directory
@@ -23,7 +38,7 @@
   - **Verify:** `git status` should not show .env files
   - **Rollback:** `git checkout .gitignore`
 
-- [ ] **Task 2.2**: Implement secure API key storage (~45 min)
+- [x] **Task 2.2**: Implement secure API key storage (~45 min)
   - File: `api/server.py`, `backend/config.py`
   - Use python-dotenv to load keys from `.env` file
   - Create `.env.example` template (without real keys)
@@ -38,7 +53,7 @@
   - **Verify:** `curl http://127.0.0.1:8742/config` should show masked keys
   - **Rollback:** `git checkout api/server.py backend/config.py`
 
-- [ ] **Task 2.3**: Add API input validation and security headers (~30 min)
+- [x] **Task 2.3**: Add API input validation and security headers (~30 min)
   - File: `api/server.py`
   - Add request size limits
   - Sanitize all user inputs
@@ -49,7 +64,7 @@
 
 ## Phase 3: Settings Page
 
-- [ ] **Task 3.1**: Connect Settings to real API (~1 hour)
+- [x] **Task 3.1**: Connect Settings to real API (~1 hour)
   - File: `frontend/src/pages/Settings.tsx`
   - Load current config from `/config`
   - Save API keys via `/settings`
@@ -62,7 +77,7 @@
 
 ## Phase 4: Dashboard
 
-- [ ] **Task 4.1**: Fetch real stats (~45 min)
+- [x] **Task 4.1**: Fetch real stats (~45 min)
   - File: `frontend/src/pages/Dashboard.tsx`
   - Get usage from `/usage`
   - Get recent runs from `/runs`
@@ -75,7 +90,7 @@
 
 ## Phase 5: Run Orchestrator
 
-- [ ] **Task 5.1**: Connect to WebSocket for live logs (~45 min)
+- [x] **Task 5.1**: Connect to WebSocket for live logs (~45 min)
   - File: `frontend/src/pages/RunOrchestrator.tsx`
   - Use existing `useWebSocket` hook
   - Display real-time log messages
@@ -84,7 +99,7 @@
     - Messages appear as they're emitted from backend
   - **Verify:** Start a run, watch logs appear in real-time
 
-- [ ] **Task 5.2**: Start real runs (~1 hour)
+- [x] **Task 5.2**: Start real runs (~1 hour)
   - Call `/run` endpoint with components
   - Handle run_started, log, run_complete, run_error events
   - Show cost estimate on completion
@@ -96,7 +111,12 @@
 
 ## Phase 6: Email Notifications
 
-- [-] **Task 6.1**: Implement email notification service (PARTIAL)
+- [x] **Task 6.1**: Implement email notification service (PARTIAL)
+
+
+
+
+
   - File: `backend/notifications.py`
   - Use SMTP with Gmail App Password or SendGrid free tier
   - Python's built-in `smtplib` + `email` modules (no extra deps)
@@ -105,7 +125,12 @@
   - Send summary email when full run completes with cost estimate
   - HTML email template for nice formatting
 
-- [ ] **Task 6.2**: Add email notification settings to frontend (~1 hour)
+- [x] **Task 6.2**: Add email notification settings to frontend (~1 hour)
+
+
+
+
+
   - File: `frontend/src/pages/Settings.tsx`
   - Add toggle to enable/disable email notifications
   - Input fields: SMTP server, port, email, app password, recipient
@@ -118,7 +143,10 @@
     - Settings persist across restarts
   - **Verify:** Configure email, click Test, check inbox
 
-- [ ] **Task 6.3**: Integrate email notifications into orchestrator (~30 min)
+- [x] **Task 6.3**: Integrate email notifications into orchestrator (~30 min)
+
+
+
   - File: `api/server.py`, `backend/orchestrator.py`
   - Call notification service on `component_complete` event
   - Call notification service on `run_complete` and `run_error` events
@@ -128,7 +156,7 @@
 
 ## Phase 7: Results Browser
 
-- [ ] **Task 7.1**: Fetch real run history (~45 min)
+- [x] **Task 7.1**: Fetch real run history (~45 min)
   - File: `frontend/src/pages/Results.tsx`
   - Load from `/runs` endpoint
   - Build tree from actual data
@@ -137,7 +165,7 @@
     - Tree structure matches neura_lab_runs/ directory
   - **Verify:** Complete a run, check Results page shows it
 
-- [ ] **Task 7.2**: View run details (~45 min)
+- [x] **Task 7.2**: View run details (~45 min)
   - Fetch from `/runs/{component}/{timestamp}`
   - Display decomposition and node results
   - Show JSON in preview panel
@@ -148,25 +176,48 @@
 
 ## Phase 8: Polish
 
-- [ ] **Task 8.1**: Add toast notifications (~30 min)
+- [x] **Task 8.1**: Add toast notifications (~30 min)
+
+
+
+
+
+
+
+
   - Success/error messages
   - Connection status changes
   - **Verify:** Trigger success/error actions, verify toasts appear
 
 - [ ] **Task 8.2**: Loading states everywhere (~30 min)
+
   - Skeleton loaders
   - Disable buttons while loading
   - **Verify:** Check all pages show loading states during fetch
 
 ## Phase 9: Automated Testing
 
-- [ ] **Task 9.1**: Set up testing frameworks (~30 min)
+
+- [x] **Task 9.1**: Set up testing frameworks (~30 min)
+
+
+
+
   - Frontend: Add Vitest + React Testing Library to package.json
   - Backend: Add pytest to requirements.txt
   - Add test scripts: `npm test`, `pytest`
   - **Verify:** `cd frontend && npm test -- --run` and `pytest tests/`
+-
 
-- [ ] **Task 9.2**: Backend API unit tests (~1 hour)
+- [x] **Task 9.2**: Backend API unit tests (~1 hour)
+
+
+
+
+
+
+
+
   - File: `tests/test_api.py`
   - Test `/health` returns 200
   - Test `/config` returns expected structure
@@ -175,7 +226,12 @@
   - Mock LLM calls (don't hit real APIs in tests)
   - **Verify:** `pytest tests/test_api.py -v`
 
-- [ ] **Task 9.3**: Backend orchestrator unit tests (~1 hour)
+- [x] **Task 9.3**: Backend orchestrator unit tests (~1 hour)
+
+
+
+
+
   - File: `tests/test_orchestrator.py`
   - Test `slugify()` function
   - Test `safe_json_load()` with valid/invalid JSON
@@ -183,7 +239,12 @@
   - Test `get_backend()` routing logic
   - **Verify:** `pytest tests/test_orchestrator.py -v`
 
-- [ ] **Task 9.4**: Frontend component tests (~1 hour)
+- [x] **Task 9.4**: Frontend component tests (~1 hour)
+
+
+
+
+
   - Files: `frontend/src/__tests__/*.test.tsx`
   - Test Dashboard renders without crashing
   - Test Settings form validation
@@ -191,14 +252,24 @@
   - Test ConnectionStatus shows correct state
   - **Verify:** `cd frontend && npm test -- --run`
 
-- [ ] **Task 9.5**: Frontend hook tests (~45 min)
+- [x] **Task 9.5**: Frontend hook tests (~45 min)
+
+
+
+
+
   - File: `frontend/src/__tests__/useApi.test.ts`
   - Test `fetchApi` handles errors
   - Test WebSocket reconnection logic
   - Mock fetch/WebSocket for isolation
   - **Verify:** `cd frontend && npm test -- --run src/__tests__/useApi.test.ts`
 
-- [ ] **Task 9.6**: Integration tests (~1 hour)
+- [x] **Task 9.6**: Integration tests (~1 hour)
+
+
+
+
+
   - Test full flow with mock backend
   - Start run -> receive updates -> see completion
   - Verify UI updates correctly
@@ -213,19 +284,34 @@
 
 ## Phase 10: Error Handling & Resilience
 
-- [ ] **Task 10.1**: Graceful LLM API failures (~45 min)
+- [x] **Task 10.1**: Graceful LLM API failures (~45 min)
+
+
+
+
+
   - Catch and retry on rate limits (already have backoff)
   - Save partial progress if run fails mid-way
   - Allow resuming failed runs from checkpoint
   - **Verify:** Simulate API failure, verify checkpoint saved, resume works
 
-- [ ] **Task 10.2**: Frontend error boundaries (~30 min)
+- [x] **Task 10.2**: Frontend error boundaries (~30 min)
+
+
+
+
+
   - Add React error boundary component
   - Show friendly error page instead of white screen
   - Log errors for debugging
   - **Verify:** Throw error in component, verify error boundary catches it
 
-- [ ] **Task 10.3**: Offline mode indicator (~30 min)
+- [x] **Task 10.3**: Offline mode indicator (~30 min)
+
+
+
+
+
   - Detect when backend is unreachable
   - Queue actions to retry when reconnected
   - Show clear "offline" state in UI
@@ -233,7 +319,12 @@
 
 ## Phase 11: Performance & UX
 
-- [ ] **Task 11.1**: Add run progress percentage (~45 min)
+- [x] **Task 11.1**: Add run progress percentage (~45 min)
+
+
+
+
+
   - Calculate based on completed stages
   - Show progress bar during runs
   - Estimate time remaining
@@ -245,7 +336,10 @@
   - Add virtualized list for large result sets
   - **Verify:** Check network tab, verify JSON loaded on click only
 
-- [ ] **Task 11.3**: Dark/light theme toggle (~30 min)
+- [x] **Task 11.3**: Dark/light theme toggle (~30 min)
+
+
+
   - Add theme switcher in settings
   - Persist preference in localStorage
   - Already have dark theme, add light variant
@@ -253,13 +347,15 @@
 
 ## Phase 12: Export & Sharing
 
-- [ ] **Task 12.1**: Export run results (~1 hour)
+- [x] **Task 12.1**: Export run results (~1 hour)
+
   - Export as ZIP (all JSON + markdown files)
   - Export as single merged PDF/Markdown report
   - Copy shareable summary to clipboard
   - **Verify:** Export run, verify ZIP contains all files
 
-- [ ] **Task 12.2**: Run templates (~45 min)
+- [x] **Task 12.2**: Run templates (~45 min)
+
   - Save frequently used component lists
   - Quick-start from template
   - Import/export templates
@@ -267,13 +363,13 @@
 
 ## Phase 13: Documentation
 
-- [ ] **Task 13.1**: In-app help (~30 min)
+- [x] **Task 13.1**: In-app help (~30 min)
   - Add tooltips explaining each feature
   - "What's this?" hover hints
   - Link to full documentation
   - **Verify:** Hover over features, verify tooltips appear
 
-- [ ] **Task 13.2**: Developer docs (~45 min)
+- [x] **Task 13.2**: Developer docs (~45 min)
   - Document API endpoints
   - Document config options
   - Add architecture diagram to README
@@ -287,7 +383,7 @@
   - Include run output files in commit
   - **Verify:** Complete run, verify git log shows commit
 
-- [ ] **Task 14.2**: Auto-commit on file saves (optional) (~20 min)
+- [-] **Task 14.2**: Auto-commit on file saves (optional) (~20 min)
   - Hook triggered when code files are saved
   - Commit message: "wip: {filename}"
   - Configurable: enable/disable in settings

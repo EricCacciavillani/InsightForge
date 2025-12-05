@@ -1,5 +1,20 @@
 # Implementation Plan
 
+## Git Branch Setup
+
+**Before starting any tasks:**
+```bash
+git checkout -b feature/red-team-agent
+```
+
+**After completing all tasks:**
+```bash
+git push -u origin feature/red-team-agent
+# Then create PR to merge into main
+```
+
+---
+
 - [ ] 1. Add Red Team configuration (~30 min)
   - [ ] 1.1 Add config variables to config.py (~20 min)
     - Add `RED_TEAM_ENABLED`, `RED_TEAM_INTENSITY` settings
