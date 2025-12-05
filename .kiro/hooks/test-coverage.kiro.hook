@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Test Coverage Check",
+  "description": "Scan codebase for untested functions and components. Run manually before PRs or releases.",
+  "version": "4",
+  "when": {
+    "type": "manual"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze test coverage across the codebase:\n\n## Python (backend/, api/)\n1. Find all public functions/classes (not prefixed with _)\n2. Look for corresponding test files in tests/\n3. Check if each public function has at least one test\n\n## TypeScript/React (frontend/src/)\n1. Find all exported functions, components, and hooks\n2. Look for corresponding .test.ts/.test.tsx files\n3. Check component render tests exist\n4. Check hook behavior tests exist\n\n## Report Format\nGroup by priority:\n- CRITICAL: Core business logic without tests\n- HIGH: Public API functions without tests  \n- MEDIUM: Components without render tests\n- LOW: Utility functions without tests\n\nList each untested item with its file path. If coverage looks good, report 'Test coverage is adequate'."
+  }
+}

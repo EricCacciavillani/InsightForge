@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Frontend Format",
+  "description": "Auto-format and lint TypeScript/React files with Prettier then ESLint on save.",
+  "version": "3",
+  "when": {
+    "type": "onFileSave",
+    "patterns": ["frontend/src/**/*.ts", "frontend/src/**/*.tsx", "frontend/src/**/*.css"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "cd frontend && npx prettier --write ${file} && npx eslint ${file} --fix 2>/dev/null || true"
+  }
+}

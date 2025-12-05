@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Push on Task Complete",
+  "description": "Auto-commit and push when a main task in a spec is fully completed. Each spec uses its own feature branch.",
+  "version": "2",
+  "when": {
+    "type": "onFileSave",
+    "patterns": [".kiro/specs/**/tasks.md"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A tasks.md file was saved. Check for newly completed MAIN tasks and push them.\n\n## Step 1: Extract spec info\n- Get spec name from path: `.kiro/specs/{spec-name}/tasks.md`\n- Branch name: `feature/{spec-name}`\n- State file: `.kiro/specs/{spec-name}/.pushed-tasks`\n\n## Step 2: Ensure correct branch\n- Check current branch: `git branch --show-current`\n- If not on `feature/{spec-name}`:\n  - Check if branch exists: `git branch --list feature/{spec-name}`\n  - If exists: `git checkout feature/{spec-name}`\n  - If not: `git checkout -b feature/{spec-name}`\n\n## Step 3: Find completed main tasks\n- Parse tasks.md for MAIN tasks only (lines like `- [x] 1. Task name` or `- [x] 2. Task name`)\n- Main tasks are numbered without dots (1, 2, 3...) not subtasks (1.1, 1.2...)\n- A main task is complete when marked `[x]}` (not `[-]` or `[ ]`)\n- Read .pushed-tasks file to see which tasks were already pushed\n- Find NEW completions: tasks marked [x] that aren't in .pushed-tasks\n\n## Step 4: For each newly completed main task\n- Extract task number and name (e.g., \"3. Implement baseline comparison engine\")\n- Stage all changes: `git add -A`\n- Commit: `git commit -m 'feat({spec-name}): complete task {N} - {task-name}'`\n- Push: `git push -u origin feature/{spec-name}`\n- Append task number to .pushed-tasks file\n- Report: 'Pushed: Task {N} - {task-name}'\n\n## Step 5: If ALL main tasks complete\n- After pushing the final task, report: 'Spec {spec-name} fully complete! Ready for PR.'\n\n## Important\n- Only process MAIN tasks (1, 2, 3...), ignore subtasks (1.1, 2.1...)\n- Silent if no new completions\n- Don't re-push already pushed tasks (check .pushed-tasks)\n- Create .pushed-tasks if it doesn't exist"
+  }
+}

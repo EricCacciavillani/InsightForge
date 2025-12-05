@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Dependency Check",
+  "description": "Scan Python files for imports missing from requirements.txt. Run manually when adding new dependencies.",
+  "version": "2",
+  "when": {
+    "type": "manual"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Scan all Python files for third-party imports missing from requirements.txt:\n\n1. Find all .py files in backend/, api/, and scripts/\n2. Extract import statements from each file\n3. Filter to third-party packages (exclude stdlib: os, sys, json, asyncio, typing, pathlib, etc.)\n4. Filter out local imports (backend.*, api.*, scripts.*)\n5. Compare against requirements.txt\n\nReport:\n- List of missing packages that should be added to requirements.txt\n- Which files import each missing package\n\nIf no missing dependencies, report 'All dependencies are in requirements.txt'."
+  }
+}

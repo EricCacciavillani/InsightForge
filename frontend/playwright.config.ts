@@ -15,6 +15,7 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { outputFolder: 'e2e/reports' }],
+    ['./e2e/utils/test-reporter.ts'],
   ],
   use: {
     trace: 'on-first-retry',

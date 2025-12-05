@@ -1,10 +1,10 @@
 {
   "enabled": true,
-  "name": "Auto-Document Functions",
+  "name": "Python Docstrings",
   "description": "Adds Google-style docstrings to undocumented Python functions on save. Follows PEP 257 and Ruff D rules.",
-  "version": "2",
+  "version": "3",
   "when": {
-    "type": "onFileChange",
+    "type": "onFileSave",
     "patterns": [
       "backend/**/*.py",
       "api/**/*.py"
