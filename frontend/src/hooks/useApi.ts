@@ -254,3 +254,28 @@ export function downloadBlob(blob: Blob, filename: string): void {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+// -------------- Hook Management Functions --------------
+
+export interface HookInfo {
+  id: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+  filename: string;
+}
+
+export async function getHooks(): Promise<{ hooks: HookInfo[] }> {
+  return fetchApi<{ hooks: HookInfo[] }>('/hooks');
+}
+
+export async function getHook(hookId: string): Promise<HookInfo & { config: Record<string, unknown> }> {
+  return fetchApi<HookInfo & { config: Record<string, unknown> }>(`/hooks/${hookId}`);
+}
+
+export async function toggleHook(hookId: string, enabled: boolean): Promise<{ id: string; enabled: boolean; message: string }> {
+  return fetchApi<{ id: string; enabled: boolean; message: string }>(`/hooks/${hookId}/toggle`, {
+    method: 'POST',
+    body: JSON.stringify({ enabled }),
+  });
+}

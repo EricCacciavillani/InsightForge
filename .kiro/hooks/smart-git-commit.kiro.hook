@@ -1,7 +1,7 @@
 {
-  "enabled": false,
+  "enabled": true,
   "name": "Smart Git Commit",
-  "description": "Auto-commit with meaningful message based on changes, optionally push",
+  "description": "Auto-commit with meaningful message based on changes, when the task is done and majority of tests pass please push changes",
   "version": "1",
   "when": {
     "type": "afterAgentResponse"

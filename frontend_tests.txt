@@ -1,11 +1,16 @@
+
+> insight-forge@1.0.0 test:run
+> vitest --run
+
 [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
 
  RUN  v2.1.9 /mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend
 
-(node:15512) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend/postcss.config.js is not specified and it doesn't parse as CommonJS.
+(node:17960) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend/postcss.config.js is not specified and it doesn't parse as CommonJS.
 Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
 To eliminate this warning, add "type": "module" to /mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend/package.json.
 (Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ src/__tests__/ConnectionStatus.test.tsx (11 tests) 35ms
 stdout | src/__tests__/useApi.test.ts > useWebSocket > sets connected to true when WebSocket opens
 [WS] Connected
 
@@ -22,7 +27,23 @@ stdout | src/__tests__/useApi.test.ts > useWebSocket > closes WebSocket on unmou
 stdout | src/__tests__/useApi.test.ts > useWebSocket > handles invalid JSON messages gracefully
 [WS] Connected
 
- ✓ src/__tests__/useApi.test.ts (16 tests) 240ms
+ ✓ src/__tests__/useApi.test.ts (16 tests) 234ms
+stderr | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > renders the run orchestrator page with input fields
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > shows connected status after WebSocket opens
+[WS] Connected
+
+stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > receives and displays log messages via WebSocket
+[WS] Connected
+
+stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > shows component completion via WebSocket
+[WS] Connected
+
+stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > shows run completion with cost estimate
+[WS] Connected
+
 stderr | src/__tests__/Settings.test.tsx > Settings > renders without crashing
 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
@@ -283,10 +304,15 @@ This ensures that you're testing the behavior the user would see in the browser.
     at Router (/mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend/node_modules/react-router/dist/umd/react-router.development.js:1207:17)
     at BrowserRouter (/mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend/node_modules/react-router-dom/dist/umd/react-router-dom.development.js:695:7)
 
- ✓ src/__tests__/Settings.test.tsx (7 tests) 276ms
- ✓ src/__tests__/ConnectionStatus.test.tsx (11 tests) 43ms
- ✓ src/__tests__/ErrorBoundary.test.tsx (6 tests) 141ms
- ✓ src/test/setup.test.ts (1 test) 3ms
+stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > handles run error via WebSocket
+[WS] Connected
+
+stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > completes full flow: start -> logs -> component complete -> run complete
+[WS] Connected
+
+ ✓ src/__tests__/integration/RunFlow.test.tsx (13 tests) 204ms
+ ✓ src/__tests__/Settings.test.tsx (7 tests) 250ms
+ ✓ src/test/setup.test.ts (1 test) 1ms
 stderr | src/__tests__/Dashboard.test.tsx > Dashboard > renders without crashing
 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
@@ -449,38 +475,16 @@ This ensures that you're testing the behavior the user would see in the browser.
     at Router (/mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend/node_modules/react-router/dist/umd/react-router.development.js:1207:17)
     at BrowserRouter (/mnt/c/Users/iphon/OneDrive/Desktop/python_projects/automated_researchers/frontend/node_modules/react-router-dom/dist/umd/react-router-dom.development.js:695:7)
 
- ✓ src/__tests__/Dashboard.test.tsx (5 tests) 142ms
-stderr | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > renders the run orchestrator page with input fields
-⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
-⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
-
-stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > shows connected status after WebSocket opens
-[WS] Connected
-
-stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > receives and displays log messages via WebSocket
-[WS] Connected
-
-stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > shows component completion via WebSocket
-[WS] Connected
-
-stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > shows run completion with cost estimate
-[WS] Connected
-
-stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > handles run error via WebSocket
-[WS] Connected
-
-stdout | src/__tests__/integration/RunFlow.test.tsx > Run Orchestrator Integration Flow > completes full flow: start -> logs -> component complete -> run complete
-[WS] Connected
-
- ✓ src/__tests__/integration/RunFlow.test.tsx (13 tests) 312ms
+ ✓ src/__tests__/Dashboard.test.tsx (5 tests) 78ms
 stderr | src/__tests__/Sidebar.test.tsx > Sidebar > renders without crashing
 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
 
- ✓ src/__tests__/Sidebar.test.tsx (7 tests) 70ms
+ ✓ src/__tests__/Sidebar.test.tsx (7 tests) 65ms
+ ✓ src/__tests__/ErrorBoundary.test.tsx (6 tests) 106ms
 
  Test Files  8 passed (8)
       Tests  66 passed (66)
-   Start at  20:13:45
-   Duration  42.20s (transform 1.92s, setup 65.17s, collect 4.09s, tests 1.23s, environment 118.04s, prepare 10.74s)
+   Start at  20:16:19
+   Duration  28.24s (transform 1.74s, setup 45.92s, collect 3.81s, tests 973ms, environment 77.53s, prepare 6.91s)
 

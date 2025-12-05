@@ -3,10 +3,16 @@
 Kiro Task Runner - Automates execution of Kiro spec tasks
 
 Usage:
-    python kiro_runner.py list                    # List all specs and tasks
-    python kiro_runner.py list <spec_name>        # List tasks for a specific spec
-    python kiro_runner.py run <spec_name>         # Run all incomplete tasks sequentially
-    python kiro_runner.py run <spec_name> --parallel 3  # Run 3 tasks in parallel with worktrees
+    py -3 kiro_runner.py list                           # List all specs and tasks
+    py -3 kiro_runner.py list <spec_name>               # List tasks for a specific spec
+    py -3 kiro_runner.py run <spec_name>                # Run all incomplete tasks sequentially
+    py -3 kiro_runner.py run <spec_name> -t 9.7         # Run a single task by number
+    py -3 kiro_runner.py run <spec_name> --parallel 3   # Run 3 tasks in parallel with worktrees
+
+Examples:
+    py -3 kiro_runner.py list connect-frontend-backend
+    py -3 kiro_runner.py run connect-frontend-backend -t 8.2
+    py -3 kiro_runner.py run connect-frontend-backend --parallel 3
 """
 
 import os
@@ -35,6 +41,19 @@ class Spec:
     name: str             # e.g., "connect-frontend-backend"
     path: Path            # Path to spec folder
     tasks: List[Task]
+
+
+@dataclass
+class KiroInstance:
+    """Represents a running Kiro CLI instance."""
+    id: str                    # Unique instance ID
+    task: Task                 # Task being executed
+    spec: Spec                 # Parent spec
+    process: subprocess.Popen  # Process handle
+    working_dir: Path          # Working directory
+    branch: Optional[str]      # Git branch (if using worktree)
+    worktree_path: Optional[Path]  # Worktree path (if using worktree)
+    started_at: float          # Unix timestamp
 
 
 # Windows-compatible status icons
@@ -246,26 +265,55 @@ class KiroRunner:
         except subprocess.CalledProcessError:
             pass  # Ignore cleanup errors
 
-    def run_kiro_task(self, spec: Spec, task: Task, working_dir: Optional[Path] = None) -> subprocess.Popen:
-        """Launch Kiro to execute a task. Returns the process handle."""
+    def run_kiro_task(
+        self,
+        spec: Spec,
+        task: Task,
+        working_dir: Optional[Path] = None,
+        branch: Optional[str] = None,
+        worktree_path: Optional[Path] = None
+    ) -> KiroInstance:
+        """
+        Launch a new Kiro CLI instance to execute a task.
+        Each task gets its own isolated kiro process.
+        Returns a KiroInstance for tracking.
+        """
         prompt = self.build_kiro_prompt(spec, task)
         work_dir = working_dir or self.project_root
+        instance_id = f"{spec.name}-{task.number}-{int(time.time())}"
 
         print(f"\n{'─'*50}")
-        print(f"Launching Task {task.number}: {task.title}")
+        print(f"[KIRO INSTANCE: {instance_id}]")
+        print(f"Task {task.number}: {task.title}")
         print(f"Working dir: {work_dir}")
-        print(f"Prompt: {prompt[:100]}...")
+        if branch:
+            print(f"Branch: {branch}")
+        print(f"Prompt: {prompt[:80]}...")
         print(f"{'─'*50}\n")
 
-        # Launch kiro chat in a new window
+        # Launch kiro chat in a NEW window (-n flag ensures separate instance)
         process = subprocess.Popen(
             [self.kiro_cmd, "chat", "-m", "agent", "-n", prompt],
             cwd=work_dir,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
+            # Ensure each process is independent
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0
         )
 
-        return process
+        instance = KiroInstance(
+            id=instance_id,
+            task=task,
+            spec=spec,
+            process=process,
+            working_dir=work_dir,
+            branch=branch,
+            worktree_path=worktree_path,
+            started_at=time.time()
+        )
+
+        print(f"[OK] Kiro instance {instance_id} started (PID: {process.pid})")
+        return instance
 
     def run_sequential(self, spec_name: str):
         """Run all incomplete tasks in a spec sequentially."""
@@ -286,19 +334,57 @@ class KiroRunner:
         for i, task in enumerate(pending_tasks, 1):
             print(f"\n[{i}/{len(pending_tasks)}] Starting Task {task.number}: {task.title}")
 
-            process = self.run_kiro_task(spec, task)
+            instance = self.run_kiro_task(spec, task)
 
             input("\n[PAUSE] Press ENTER when Kiro has completed this task...")
 
             # Kill the process if still running (user might have closed window)
-            if process.poll() is None:
-                process.terminate()
+            if instance.process.poll() is None:
+                instance.process.terminate()
 
-            print(f"[OK] Task {task.number} marked as handled\n")
+            elapsed = time.time() - instance.started_at
+            print(f"[OK] Task {task.number} marked as handled (ran for {elapsed:.1f}s)\n")
 
         print("\n" + "="*50)
         print("All tasks launched! Remember to verify each task.")
         print("="*50)
+
+    def run_single_task(self, spec_name: str, task_number: str):
+        """Run a single specific task by its number."""
+        spec = self.get_spec(spec_name)
+        if not spec:
+            print(f"Spec '{spec_name}' not found")
+            return
+
+        # Find the task by number
+        task = next((t for t in spec.tasks if t.number == task_number), None)
+        if not task:
+            print(f"Task {task_number} not found in spec '{spec_name}'")
+            print("\nAvailable tasks:")
+            for t in spec.tasks:
+                print(f"  {t.number}: {t.title}")
+            return
+
+        print(f"\n{'='*50}")
+        print(f"Running single task: {task.number} - {task.title}")
+        print(f"Status: {task.status}")
+        print(f"{'='*50}")
+
+        if task.status == 'completed':
+            confirm = input("\nThis task is already completed. Run anyway? (y/N): ")
+            if confirm.lower() != 'y':
+                print("Aborted.")
+                return
+
+        instance = self.run_kiro_task(spec, task)
+
+        input("\n[PAUSE] Press ENTER when Kiro has completed this task...")
+
+        if instance.process.poll() is None:
+            instance.process.terminate()
+
+        elapsed = time.time() - instance.started_at
+        print(f"\n[OK] Task {task.number} completed! (ran for {elapsed:.1f}s)")
 
     def run_parallel(self, spec_name: str, max_parallel: int = 3):
         """Run tasks in parallel using git worktrees."""
@@ -316,48 +402,60 @@ class KiroRunner:
         # Limit to max_parallel tasks
         tasks_to_run = pending_tasks[:max_parallel]
 
-        print(f"\nRunning {len(tasks_to_run)} tasks in parallel using worktrees")
-        print("="*50)
+        print(f"\nRunning {len(tasks_to_run)} tasks in parallel")
+        print(f"Each task gets its own Kiro CLI instance + git worktree")
+        print("="*60)
 
-        worktrees = []
-        processes = []
+        instances: List[KiroInstance] = []
 
         for task in tasks_to_run:
             branch_name = f"task/{spec.name}-{task.number}"
             worktree_path = self.project_root.parent / f"task-{spec.name}-{task.number}"
 
-            print(f"\nCreating worktree for Task {task.number}...")
+            print(f"\n[SETUP] Creating isolated environment for Task {task.number}...")
 
             if self.create_worktree(branch_name, worktree_path):
-                process = self.run_kiro_task(spec, task, worktree_path)
-                worktrees.append((worktree_path, branch_name))
-                processes.append((task, process))
+                instance = self.run_kiro_task(
+                    spec, task,
+                    working_dir=worktree_path,
+                    branch=branch_name,
+                    worktree_path=worktree_path
+                )
+                instances.append(instance)
             else:
-                print(f"Skipping Task {task.number} - worktree creation failed")
+                print(f"[SKIP] Task {task.number} - worktree creation failed")
 
-        print("\n" + "="*50)
-        print(f"Launched {len(processes)} Kiro windows in parallel!")
-        print("="*50)
-        print("\nWorktrees created:")
-        for wt_path, branch in worktrees:
-            print(f"  - {wt_path} ({branch})")
+        print("\n" + "="*60)
+        print(f"[OK] Launched {len(instances)} isolated Kiro CLI instances!")
+        print("="*60)
+
+        print("\nRunning instances:")
+        for inst in instances:
+            print(f"  - {inst.id}")
+            print(f"    PID: {inst.process.pid}")
+            print(f"    Branch: {inst.branch}")
+            print(f"    Working dir: {inst.working_dir}")
 
         print("\n[INFO] When all tasks are complete, run these commands to merge:")
         print("-"*50)
-        for wt_path, branch in worktrees:
-            print(f"git merge {branch}")
+        for inst in instances:
+            print(f"git merge {inst.branch}")
         print("-"*50)
         print("\nThen cleanup with:")
-        for wt_path, branch in worktrees:
-            print(f"git worktree remove {wt_path}")
+        for inst in instances:
+            print(f"git worktree remove {inst.worktree_path}")
 
-        input("\n[PAUSE] Press ENTER when all Kiro tasks are complete to cleanup...")
+        input("\n[PAUSE] Press ENTER when all Kiro instances are complete to cleanup...")
 
         # Cleanup
-        print("\nCleaning up worktrees...")
-        for wt_path, branch in worktrees:
-            self.remove_worktree(wt_path, branch)
-            print(f"  Removed {wt_path}")
+        print("\nCleaning up worktrees and terminating any remaining processes...")
+        for inst in instances:
+            if inst.process.poll() is None:
+                inst.process.terminate()
+                print(f"  Terminated {inst.id}")
+            if inst.worktree_path and inst.branch:
+                self.remove_worktree(inst.worktree_path, inst.branch)
+                print(f"  Removed worktree {inst.worktree_path}")
 
         print("\n[OK] Cleanup complete!")
 
@@ -373,6 +471,8 @@ def main():
     # Run command
     run_parser = subparsers.add_parser('run', help='Run tasks in a spec')
     run_parser.add_argument('spec_name', help='Spec name to run')
+    run_parser.add_argument('--task', '-t', type=str, default=None,
+                          help='Run a single task by number (e.g., 9.7)')
     run_parser.add_argument('--parallel', '-p', type=int, default=0,
                           help='Number of tasks to run in parallel (uses worktrees)')
 
@@ -392,7 +492,9 @@ def main():
     if args.command == 'list':
         runner.list_specs(args.spec_name)
     elif args.command == 'run':
-        if args.parallel > 0:
+        if args.task:
+            runner.run_single_task(args.spec_name, args.task)
+        elif args.parallel > 0:
             runner.run_parallel(args.spec_name, args.parallel)
         else:
             runner.run_sequential(args.spec_name)

@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(Where-Object { $_ullName -notmatch \"node_modules\" })",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(py -3 kiro_runner.py:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,8 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 
@@ -13,6 +13,11 @@ function renderSidebar(collapsed = false, onToggle = vi.fn()) {
     </BrowserRouter>
   );
 }
+
+// Ensure cleanup between tests
+afterEach(() => {
+  cleanup();
+});
 
 describe('Sidebar', () => {
   it('renders without crashing', () => {

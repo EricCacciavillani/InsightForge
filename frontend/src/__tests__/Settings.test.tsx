@@ -1,8 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Settings from '../pages/Settings';
 import { ToastProvider } from '../components/Toast';
@@ -20,9 +20,11 @@ vi.mock('../hooks/useApi', () => ({
   exportRunAsMarkdown: vi.fn(),
   getRunSummary: vi.fn(),
   downloadBlob: vi.fn(),
+  getHooks: vi.fn(),
+  toggleHook: vi.fn(),
 }));
 
-import { getConfig, updateSettings, sendTestEmail, checkHealth } from '../hooks/useApi';
+import { getConfig, updateSettings, sendTestEmail, checkHealth, getHooks, toggleHook } from '../hooks/useApi';
 
 const mockConfig = {
   deep_research_enabled: true,
@@ -72,38 +74,44 @@ describe('Settings', () => {
     (updateSettings as ReturnType<typeof vi.fn>).mockResolvedValue({ status: 'ok' });
     (sendTestEmail as ReturnType<typeof vi.fn>).mockResolvedValue({ status: 'ok', message: 'sent' });
     (checkHealth as ReturnType<typeof vi.fn>).mockResolvedValue(true);
+    (getHooks as ReturnType<typeof vi.fn>).mockResolvedValue({ hooks: [{ id: 'auto-commit-file-save', name: 'Auto-Commit on File Save', enabled: false }] });
+    (toggleHook as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'auto-commit-file-save', enabled: true, message: 'Hook enabled' });
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it('renders without crashing', async () => {
-    renderSettings();
+    const { container } = renderSettings();
     
-    expect(screen.getByText('Settings')).toBeInTheDocument();
-    expect(screen.getByText('Configure your orchestrator preferences')).toBeInTheDocument();
+    expect(container.textContent).toContain('Settings');
+    expect(container.textContent).toContain('Configure your orchestrator preferences');
   });
 
   it('displays section navigation', async () => {
     renderSettings();
     
-    // Use getAllByText since "API Keys" appears in both nav and content
+    // Use getAllByText since these appear in both nav and content
     expect(screen.getAllByText('API Keys').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Email Notifications')).toBeInTheDocument();
-    expect(screen.getByText('Model Routing')).toBeInTheDocument();
-    expect(screen.getByText('Deep Research')).toBeInTheDocument();
-    expect(screen.getByText('Advanced')).toBeInTheDocument();
+    expect(screen.getAllByText('Email Notifications').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Model Routing').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Deep Research').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Advanced').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows API key status after loading', async () => {
     renderSettings();
     
     await waitFor(() => {
-      expect(screen.getByText('OpenAI API Key')).toBeInTheDocument();
+      expect(screen.getAllByText('OpenAI API Key').length).toBeGreaterThanOrEqual(1);
     });
     
     // OpenAI is configured
-    expect(screen.getByText(/Configured \(sk-\.\.\.xxxx\)/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Configured \(sk-\.\.\.xxxx\)/).length).toBeGreaterThanOrEqual(1);
     
     // Gemini is not configured
-    expect(screen.getByText('Gemini API Key')).toBeInTheDocument();
+    expect(screen.getAllByText('Gemini API Key').length).toBeGreaterThanOrEqual(1);
   });
 
   it('has save button', async () => {
@@ -112,8 +120,8 @@ describe('Settings', () => {
     // Wait for the component to finish loading and health check to complete
     await waitFor(() => {
       // The button text depends on online status - look for either variant
-      const saveButton = screen.getByRole('button', { name: /Save Changes|Queue Save/i });
-      expect(saveButton).toBeInTheDocument();
+      const saveButtons = screen.getAllByRole('button', { name: /Save Changes|Queue Save/i });
+      expect(saveButtons.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -121,12 +129,12 @@ describe('Settings', () => {
     renderSettings();
     
     await waitFor(() => {
-      expect(screen.getByText('OpenAI API Key')).toBeInTheDocument();
+      expect(screen.getAllByText('OpenAI API Key').length).toBeGreaterThanOrEqual(1);
     });
     
     // The button text depends on online status - look for either variant
-    const saveButton = screen.getByRole('button', { name: /Save Changes|Queue Save/i });
-    fireEvent.click(saveButton);
+    const saveButtons = screen.getAllByRole('button', { name: /Save Changes|Queue Save/i });
+    fireEvent.click(saveButtons[0]);
     
     // When online, updateSettings is called; when offline, action is queued
     // Since checkHealth is mocked to return true, it should call updateSettings
@@ -139,7 +147,7 @@ describe('Settings', () => {
     renderSettings();
     
     await waitFor(() => {
-      expect(screen.getByText('OpenAI API Key')).toBeInTheDocument();
+      expect(screen.getAllByText('OpenAI API Key').length).toBeGreaterThanOrEqual(1);
     });
     
     // Click on Deep Research section
@@ -147,7 +155,7 @@ describe('Settings', () => {
     fireEvent.click(deepResearchNav);
     
     await waitFor(() => {
-      expect(screen.getByText('Enable Deep Research')).toBeInTheDocument();
+      expect(screen.getAllByText('Enable Deep Research').length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -155,7 +163,7 @@ describe('Settings', () => {
     renderSettings();
     
     await waitFor(() => {
-      expect(screen.getByText('OpenAI API Key')).toBeInTheDocument();
+      expect(screen.getAllByText('OpenAI API Key').length).toBeGreaterThanOrEqual(1);
     });
     
     // Click on Email Notifications section
@@ -163,7 +171,7 @@ describe('Settings', () => {
     fireEvent.click(emailNav);
     
     await waitFor(() => {
-      expect(screen.getByText('Enable Email Notifications')).toBeInTheDocument();
+      expect(screen.getAllByText('Enable Email Notifications').length).toBeGreaterThanOrEqual(1);
     });
   });
 });

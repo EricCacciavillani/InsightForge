@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Save, Key, Cpu, Zap, Database, Loader2, CheckCircle, Mail, Send, Info, ExternalLink, WifiOff, Sun, Moon, Palette, BookOpen } from 'lucide-react';
+import { Save, Key, Cpu, Zap, Database, Loader2, CheckCircle, Mail, Send, Info, ExternalLink, WifiOff, Sun, Moon, Palette, BookOpen, GitCommit } from 'lucide-react';
 import { clsx } from 'clsx';
-import { getConfig, updateSettings, sendTestEmail } from '../hooks/useApi';
+import { getConfig, updateSettings, sendTestEmail, getHooks, toggleHook } from '../hooks/useApi';
 import { useToast } from '../components/Toast';
 import { useOffline } from '../contexts/OfflineContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -63,6 +63,8 @@ export default function Settings() {
   const toast = useToast();
   const { isOnline, queueAction } = useOffline();
   const { theme, toggleTheme } = useTheme();
+  const [autoCommitEnabled, setAutoCommitEnabled] = useState(false);
+  const [togglingAutoCommit, setTogglingAutoCommit] = useState(false);
   const [settings, setSettings] = useState({
     openaiKey: '',
     geminiKey: '',
@@ -113,6 +115,17 @@ export default function Settings() {
         parallelEnabled: config.parallel_enabled,
         checkpointEnabled: config.checkpoint_enabled,
       }));
+      
+      // Load hook settings
+      try {
+        const hooksData = await getHooks();
+        const autoCommitHook = hooksData.hooks.find(h => h.id === 'auto-commit-file-save');
+        if (autoCommitHook) {
+          setAutoCommitEnabled(autoCommitHook.enabled);
+        }
+      } catch (hookErr) {
+        console.warn('Failed to load hooks:', hookErr);
+      }
     } catch (err) {
       toast.error('Failed to load settings');
       console.error('Failed to load config:', err);
@@ -804,6 +817,55 @@ export default function Settings() {
                       )}
                     />
                   </button>
+                </div>
+
+                {/* Git Integration Section */}
+                <div className="pt-4 border-t border-border">
+                  <h4 className="text-sm font-medium text-text-primary mb-4 flex items-center gap-2">
+                    <GitCommit size={16} />
+                    Git Integration
+                  </h4>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-text-primary">Auto-commit on File Save</p>
+                        <HelpTooltip text="Automatically create WIP commits when code files are saved. Commit message format: 'wip: {filename}'" position="right" />
+                      </div>
+                      <p className="text-xs text-text-muted mt-0.5">
+                        Create automatic commits when you save code files
+                      </p>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        setTogglingAutoCommit(true);
+                        try {
+                          const newState = !autoCommitEnabled;
+                          await toggleHook('auto-commit-file-save', newState);
+                          setAutoCommitEnabled(newState);
+                          toast.success(newState ? 'Auto-commit enabled' : 'Auto-commit disabled');
+                        } catch (err) {
+                          toast.error('Failed to toggle auto-commit');
+                          console.error('Failed to toggle hook:', err);
+                        } finally {
+                          setTogglingAutoCommit(false);
+                        }
+                      }}
+                      disabled={togglingAutoCommit}
+                      className={clsx(
+                        'w-12 h-6 rounded-full transition-colors relative',
+                        autoCommitEnabled ? 'bg-accent' : 'bg-surface-active',
+                        togglingAutoCommit && 'opacity-50 cursor-not-allowed'
+                      )}
+                    >
+                      <span
+                        className={clsx(
+                          'absolute top-1 w-4 h-4 bg-white rounded-full transition-transform',
+                          autoCommitEnabled ? 'translate-x-7' : 'translate-x-1'
+                        )}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

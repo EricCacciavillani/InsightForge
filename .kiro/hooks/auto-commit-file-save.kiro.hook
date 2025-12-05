@@ -1,0 +1,24 @@
+{
+  "enabled": false,
+  "name": "Auto-Commit on File Save",
+  "description": "Automatically commit when code files are saved. Creates WIP commits with the filename. Disabled by default - enable in Settings > Advanced if you want automatic commits on save.",
+  "version": "1",
+  "when": {
+    "type": "onFileChange",
+    "patterns": [
+      "frontend/src/**/*.tsx",
+      "frontend/src/**/*.ts",
+      "backend/**/*.py",
+      "api/**/*.py",
+      "*.py",
+      "*.ts",
+      "*.tsx",
+      "*.js",
+      "*.jsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A code file was saved. Check if auto-commit on file save is enabled:\n\n1. First, check if there are any uncommitted changes with: git status --porcelain\n2. If there are changes:\n   a. Get the list of modified files\n   b. For each modified file, extract just the filename (not the full path)\n   c. Stage all changes: git add -A\n   d. Create a commit with message format: \"wip: {filename}\" where {filename} is the name of the primary changed file\n   e. If multiple files changed, use the first one in the commit message\n   f. Report what was committed\n3. If no changes, say nothing.\n\nNote: This hook should only run if the user has enabled auto-commit on file save in settings. If you're unsure, check the .kiro/hooks/auto-commit-file-save.kiro.hook file - if 'enabled' is false, do nothing."
+  }
+}

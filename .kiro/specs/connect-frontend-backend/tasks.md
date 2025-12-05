@@ -275,7 +275,7 @@ git push -u origin feature/connect-frontend-backend
   - Verify UI updates correctly
   - **Verify:** `cd frontend && npm test -- --run src/__tests__/integration/`
 
-- [ ] **Task 9.7**: Add CI workflow (optional) (~30 min)
+- [x] **Task 9.7**: Add CI workflow (optional) (~30 min)
   - File: `.github/workflows/test.yml`
   - Run backend tests with pytest
   - Run frontend tests with vitest
@@ -377,13 +377,13 @@ git push -u origin feature/connect-frontend-backend
 
 ## Phase 14: Automated Git Integration
 
-- [ ] **Task 14.1**: Auto-commit after research runs (~30 min)
+- [x] **Task 14.1**: Auto-commit after research runs (~30 min)
   - Create Kiro hook triggered on run completion
   - Commit message: "research: {component} - {status}"
   - Include run output files in commit
   - **Verify:** Complete run, verify git log shows commit
 
-- [-] **Task 14.2**: Auto-commit on file saves (optional) (~20 min)
+- [x] **Task 14.2**: Auto-commit on file saves (optional) (~20 min)
   - Hook triggered when code files are saved
   - Commit message: "wip: {filename}"
   - Configurable: enable/disable in settings

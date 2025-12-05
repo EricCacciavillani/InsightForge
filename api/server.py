@@ -889,5 +889,75 @@ async def get_usage():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Hook management endpoints
+HOOKS_DIR = Path(__file__).parent.parent / ".kiro" / "hooks"
+
+
+@app.get("/hooks")
+async def list_hooks():
+    """List all Kiro hooks and their enabled status."""
+    hooks = []
+    if HOOKS_DIR.exists():
+        for hook_file in HOOKS_DIR.glob("*.kiro.hook"):
+            try:
+                hook_data = json.loads(hook_file.read_text())
+                hooks.append({
+                    "id": hook_file.stem.replace(".kiro", ""),
+                    "name": hook_data.get("name", hook_file.stem),
+                    "description": hook_data.get("description", ""),
+                    "enabled": hook_data.get("enabled", False),
+                    "filename": hook_file.name,
+                })
+            except (json.JSONDecodeError, IOError):
+                continue
+    return {"hooks": hooks}
+
+
+@app.get("/hooks/{hook_id}")
+async def get_hook(hook_id: str):
+    """Get a specific hook's configuration."""
+    hook_file = HOOKS_DIR / f"{hook_id}.kiro.hook"
+    if not hook_file.exists():
+        raise HTTPException(status_code=404, detail="Hook not found")
+    
+    try:
+        hook_data = json.loads(hook_file.read_text())
+        return {
+            "id": hook_id,
+            "name": hook_data.get("name", hook_id),
+            "description": hook_data.get("description", ""),
+            "enabled": hook_data.get("enabled", False),
+            "config": hook_data,
+        }
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Invalid hook configuration")
+
+
+class HookToggle(BaseModel):
+    enabled: bool
+
+
+@app.post("/hooks/{hook_id}/toggle")
+async def toggle_hook(hook_id: str, toggle: HookToggle):
+    """Enable or disable a specific hook."""
+    hook_file = HOOKS_DIR / f"{hook_id}.kiro.hook"
+    if not hook_file.exists():
+        raise HTTPException(status_code=404, detail="Hook not found")
+    
+    try:
+        hook_data = json.loads(hook_file.read_text())
+        hook_data["enabled"] = toggle.enabled
+        hook_file.write_text(json.dumps(hook_data, indent=2) + "\n")
+        return {
+            "id": hook_id,
+            "enabled": toggle.enabled,
+            "message": f"Hook {'enabled' if toggle.enabled else 'disabled'} successfully",
+        }
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Invalid hook configuration")
+    except IOError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update hook: {e}")
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8742, log_level="info")
